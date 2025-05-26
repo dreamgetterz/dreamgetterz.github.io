@@ -808,16 +808,19 @@
         </div>
         <div class="bg-[var(--card-bg)] p-6 rounded-lg shadow-lg">
           <h3 class="text-lg font-semibold text-[var(--card-heading)] mb-3">Send Me a Message</h3>
-          <div>
-            <input type="text" id="name" class="mt-1 w-full p-2 border rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)]" placeholder="Your Name" aria-label="Your Name">
-          </div>
-          <div class="mt-4">
-            <input type="email" id="email" class="mt-1 w-full p-2 border rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)]" placeholder="Your Email" aria-label="Your Email">
-          </div>
-          <div class="mt-4">
-            <textarea id="message" rows="4" class="mt-1 w-full p-2 border rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)]" placeholder="Your Message" aria-label="Your Message"></textarea>
-          </div>
-          <button class="mt-6 w-full bg-[var(--primary)] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[var(--secondary)] btn-hover" onclick="alert('Thank you for your message! We will get back to you soon.')">Send Message</button>
+          <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+            <div>
+              <input type="text" name="name" id="name" class="mt-1 w-full p-2 border rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)]" placeholder="Your Name" aria-label="Your Name" required>
+            </div>
+            <div class="mt-4">
+              <input type="email" name="email" id="email" class="mt-1 w-full p-2 border rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)]" placeholder="Your Email" aria-label="Your Email" required>
+            </div>
+            <div class="mt-4">
+              <textarea name="message" id="message" rows="4" class="mt-1 w-full p-2 border rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)]" placeholder="Your Message" aria-label="Your Message" required></textarea>
+            </div>
+            <input type="hidden" name="_next" value="/#contact">
+            <button type="submit" class="mt-6 w-full bg-[var(--primary)] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[var(--secondary)] btn-hover">Send Message</button>
+          </form>
         </div>
       </div>
     </div>
