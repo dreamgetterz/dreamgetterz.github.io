@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>RetellAI — Xfers & Appts Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg0:#080910;--bg1:#0e1018;--bg2:#151722;--bg3:#1b1e2c;--bg4:#222536;
+  --b0:#1e2132;--b1:#2a2e44;
+  --t0:#eceef4;--t1:#a0a3b8;--t2:#6b6f88;--t3:#484c64;
+  --grn:#00e59b;--grn-d:rgba(0,229,155,.12);
+  --blu:#4d8eff;--blu-d:rgba(77,142,255,.12);
+  --amb:#ffb443;--amb-d:rgba(255,180,67,.12);
+  --red:#ff4d6a;--red-d:rgba(255,77,106,.12);
+  --pur:#a78bfa;--pur-d:rgba(167,139,250,.12);
+  --cyn:#22d3ee;--cyn-d:rgba(34,211,238,.12);
+  --f:'Space Grotesk',sans-serif;--m:'JetBrains Mono',monospace;
+  --r:10px;--rs:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--t0);font-family:var(--f);-webkit-font-smoothing:antialiased}
+.D{min-height:100vh;padding:20px 24px;max-width:1480px;margin:0 auto}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--b0)}
+.hdr-l{display:flex;align-items:center;gap:14px}
+.logo{width:38px;height:38px;background:linear-gradient(135deg,var(--grn),var(--cyn));border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--m);font-weight:700;font-size:13px;color:var(--bg0)}
+.hdr h1{font-size:20px;font-weight:600;letter-spacing:-.5px}
+.hdr h1 span{color:var(--t2);font-weight:400;font-size:15px;margin-left:8px}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.dbg{font-family:var(--m);font-size:11px;color:var(--t1);background:var(--bg2);padding:7px 12px;border-radius:var(--rs);border:1px solid var(--b0)}
+.api-st{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;padding:7px 12px;border-radius:var(--rs)}
+.api-live{background:var(--grn-d);color:var(--grn)}.api-demo{background:var(--amb-d);color:var(--amb)}.api-load{background:var(--blu-d);color:var(--blu)}.api-err{background:var(--red-d);color:var(--red)}
+.api-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.api-live .api-dot{background:var(--grn);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.nav{display:flex;align-items:center;gap:3px;background:var(--bg1);padding:3px;border-radius:var(--r);margin-bottom:20px;overflow-x:auto;width:fit-content;max-width:100%}
+.ntab{padding:9px 16px;border-radius:var(--rs);font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;transition:all .2s;border:none;background:0;font-family:var(--f);white-space:nowrap}
+.ntab:hover{color:var(--t1)}.ntab.on{background:var(--bg3);color:var(--t0);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.ntab.sum{font-weight:600;border-right:1px solid var(--b0);margin-right:4px;padding-right:20px}
+.dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:5px}
+
+.ccard{background:var(--bg2);border:1px solid var(--b0);border-radius:var(--r);padding:18px;margin-bottom:14px;cursor:pointer;transition:border-color .15s}
+.ccard:hover{border-color:var(--b1)}
+.cc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.cc-name{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.cc-meta{display:flex;align-items:center;gap:8px}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:500;padding:3px 9px;border-radius:16px}
+.st-d{width:5px;height:5px;border-radius:50%;display:inline-block}
+.st-a{background:var(--grn-d);color:var(--grn)}.st-a .st-d{background:var(--grn)}
+.st-l{background:var(--amb-d);color:var(--amb)}.st-l .st-d{background:var(--amb)}
+.cc-right{display:flex;align-items:center;gap:12px}
+
+.cb{width:100%;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.cf{height:100%;border-radius:3px;transition:width .5s ease}
+
+.metrics{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:14px}
+.met{background:var(--bg3);border-radius:var(--rs);padding:10px}
+.met-l{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;font-weight:600}
+.met-v{font-family:var(--m);font-size:18px;font-weight:600;letter-spacing:-.3px}
+
+.bot{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bot-sec{background:var(--bg3);border-radius:var(--rs);padding:12px}
+.bot-title{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:8px}
+
+.wgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;text-align:center}
+.wgrid .wlbl{font-size:8px;color:var(--t3);margin-bottom:4px}
+.wgrid .wval{font-family:var(--m);font-size:13px;font-weight:600}
+.wgrid .wsub{font-size:7px;color:var(--t3);margin:2px 0}
+
+/* Mini bar chart - pure CSS */
+.bars{display:flex;align-items:flex-end;gap:3px;height:80px;padding-top:4px}
+.bar-group{display:flex;flex-direction:column;align-items:center;flex:1;height:100%;justify-content:flex-end}
+.bar-pair{display:flex;gap:2px;align-items:flex-end;flex:1;width:100%;justify-content:center}
+.bar-col{width:40%;border-radius:3px 3px 0 0;transition:height .4s ease;min-height:2px;position:relative}
+.bar-col:hover{filter:brightness(1.3)}
+.bar-col[data-tooltip]:hover::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--t0);font-family:var(--m);font-size:9px;padding:3px 6px;border-radius:4px;white-space:nowrap;margin-bottom:4px;border:1px solid var(--b1)}
+.bar-lbl{font-size:8px;color:var(--t3);margin-top:4px;text-align:center}
+.bar-chg{display:flex;gap:8px;align-items:center}
+.tag{font-family:var(--m);font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
+.tg{background:var(--grn-d);color:var(--grn)}.tr{background:var(--red-d);color:var(--red)}
+
+/* Detail page */
+.dtl-back{font-size:12px;color:var(--t2);cursor:pointer;margin-bottom:12px;display:inline-flex;align-items:center;gap:4px}
+.dtl-back:hover{color:var(--t0)}
+.hero{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.hc{background:var(--bg2);border:1px solid var(--b0);border-radius:var(--r);padding:18px 16px;position:relative;overflow:hidden}
+.hc .bar-top{position:absolute;top:0;left:0;right:0;height:3px}
+.hc-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--t3);margin-bottom:6px}
+.hc-v{font-family:var(--m);font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1}
+.hc-s{font-size:10px;color:var(--t2);margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.kp{background:var(--bg2);border:1px solid var(--b0);border-radius:var(--r);padding:14px 12px}
+.kp-l{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--t3);margin-bottom:4px}
+.kp-v{font-family:var(--m);font-size:20px;font-weight:600;letter-spacing:-.5px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.cd{background:var(--bg2);border:1px solid var(--b0);border-radius:var(--r);padding:16px}
+.cd-t{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--t2);margin-bottom:12px}
+
+/* Funnel */
+.funnel-row{margin-bottom:12px}
+.funnel-hdr{display:flex;justify-content:space-between;margin-bottom:4px}
+.funnel-lbl{font-size:11px;color:var(--t1)}
+.funnel-val{font-family:var(--m);font-size:13px;font-weight:600}
+.funnel-bg{width:100%;height:24px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.funnel-fill{height:100%;border-radius:4px;transition:width .5s}
+.funnel-sub{font-size:9px;color:var(--t3);font-family:var(--m);margin-top:2px}
+
+/* Credit modal */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:100}
+.mdl{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r);padding:24px;width:400px}
+.mdl h3{font-size:15px;font-weight:600;margin-bottom:3px}
+.mdl p{font-size:11px;color:var(--t3);margin-bottom:16px}
+.mdl label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--t2);display:block;margin-bottom:5px}
+.mdl input{width:100%;padding:9px 11px;background:var(--bg4);border:1px solid var(--b1);border-radius:var(--rs);color:var(--t0);font-family:var(--m);font-size:13px;margin-bottom:14px;outline:none}
+.mdl input:focus{border-color:var(--blu)}
+.mda{display:flex;gap:8px;justify-content:flex-end}
+.btn-p{background:var(--grn);color:var(--bg0);padding:8px 16px;border-radius:var(--rs);font-family:var(--f);font-size:12px;font-weight:500;cursor:pointer;border:none}
+.btn-g{background:0;border:1px solid var(--b1);color:var(--t1);padding:8px 16px;border-radius:var(--rs);font-family:var(--f);font-size:12px;cursor:pointer}
+.btn-c{background:var(--blu-d);color:var(--blu);border:1px solid transparent;padding:4px 10px;border-radius:var(--rs);font-family:var(--f);font-size:10px;font-weight:500;cursor:pointer}
+.btn-c:hover{border-color:var(--blu)}
+.mo{font-family:var(--m)}
+
+.preview-box{background:var(--bg4);border-radius:var(--rs);padding:10px;margin-bottom:14px}
+
+@media(max-width:1200px){.metrics{grid-template-columns:repeat(4,1fr)}.hero{grid-template-columns:repeat(2,1fr)}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.metrics{grid-template-columns:repeat(2,1fr)}.hero,.g2,.bot{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.hdr{flex-direction:column;gap:10px;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="D" id="app"></div>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+const API_KEY = "key_e1620ede48cd9f5447435a2d54ba";
+const CLIENT_CONFIG = [
+  { id:1, name:"AMITY", agentIds:[
+    "agent_cde4bbc19683cd11231e473bc5", // AMITY Tax Short Inbound RVM
+    "agent_fdddba5a29f1f863ec89c18ed2", // Tax Long Inbound RVM
+    "agent_5d3e2396d95de20774a107a34d", // Tax Short Inbound RVM
+    "agent_4471be66e41f48bc70587be719", // FULL TAX INVESTIGATION INTAKE V2
+    "agent_0588f444e5dbab02ce4a2eb9df", // FULL TAX INVESTIGATION INTAKE
+    "agent_13d00f4b15865eeda4cf9b173d", // Amy from American Tax Consultants
+    "agent_48139ece268f30b70a2c098953", // Tax Long Inbound RVM (copy)
+  ], creditBalance:4200, creditsPurchased:12000, costPerTransfer:15, costPerAppointment:35, monthlyRetainer:1500 },
+  { id:2, name:"Renzo", agentIds:[
+    "agent_da3b4d1009612ffdadfc36ab1f", // Debt Loan Short Inbound RVM
+    "agent_af9807d238a175a5718c797d47", // (unknown name - 126 calls, 15 xfers)
+    "agent_81b8a328740799c85bff41ebf8", // Debt Loan Long Inbound RVM
+    "agent_86309394f68221b9ea269628cf", // Debt Loan Short Inbound RVM
+    "agent_6b9362a9e9fbcb7f03f1b150c0", // DEBT INBND SHORT RVM Hardship Loan MP
+  ], creditBalance:3180, creditsPurchased:9000, costPerTransfer:18, costPerAppointment:40, monthlyRetainer:1200 },
+  { id:3, name:"AFN", agentIds:[
+    "agent_517c8bb223a19cd7d6e72b61ac", // American MTG Inbound
+    "agent_54762a31df33a3888b1f101617", // Long - American Mtg Network DM Intake
+    "agent_a991ae8a45d87d8e4feb686200", // Inbound RVM Prequal Agent V2
+    "agent_552588dfc7c491185f35b7e7fc", // Multi-State Agent
+  ], creditBalance:2640, creditsPurchased:7500, costPerTransfer:16, costPerAppointment:38, monthlyRetainer:1100 },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SAMPLE DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const SAMPLE = [
+  { id:1, name:"AMITY", agents:["FULL TAX INBOUND","Tax Short Inbound"], status:"active",
+    creditBalance:4200, creditsPurchased:12000, costPerTransfer:15, costPerAppointment:35, monthlyRetainer:1500,
+    totalCalls:1165, totalTransfers:187, totalAppointments:142, showed:118, noShow:24,
+    monthly:[{mo:"Nov",xfers:22,appts:16},{mo:"Dec",xfers:28,appts:21},{mo:"Jan",xfers:34,appts:26},{mo:"Feb",xfers:32,appts:25},{mo:"Mar",xfers:38,appts:30},{mo:"Apr",xfers:33,appts:24}],
+    weekly:[{wk:"W1",xfers:7,appts:5},{wk:"W2",xfers:9,appts:7},{wk:"W3",xfers:8,appts:6},{wk:"W4",xfers:10,appts:8},{wk:"W5",xfers:9,appts:7},{wk:"W6",xfers:11,appts:9},{wk:"W7",xfers:8,appts:6},{wk:"W8",xfers:10,appts:8}],
+  },
+  { id:2, name:"Renzo", agents:["Renzo Inbound","Renzo Long"], status:"active",
+    creditBalance:3180, creditsPurchased:9000, costPerTransfer:18, costPerAppointment:40, monthlyRetainer:1200,
+    totalCalls:792, totalTransfers:145, totalAppointments:108, showed:88, noShow:20,
+    monthly:[{mo:"Nov",xfers:14,appts:10},{mo:"Dec",xfers:19,appts:14},{mo:"Jan",xfers:25,appts:19},{mo:"Feb",xfers:28,appts:22},{mo:"Mar",xfers:32,appts:24},{mo:"Apr",xfers:27,appts:19}],
+    weekly:[{wk:"W1",xfers:6,appts:4},{wk:"W2",xfers:7,appts:5},{wk:"W3",xfers:8,appts:6},{wk:"W4",xfers:7,appts:5},{wk:"W5",xfers:9,appts:7},{wk:"W6",xfers:8,appts:6},{wk:"W7",xfers:7,appts:5},{wk:"W8",xfers:6,appts:4}],
+  },
+  { id:3, name:"AFN", agents:["AFN Inbound","AFN Short"], status:"active",
+    creditBalance:2640, creditsPurchased:7500, costPerTransfer:16, costPerAppointment:38, monthlyRetainer:1100,
+    totalCalls:555, totalTransfers:112, totalAppointments:85, showed:71, noShow:14,
+    monthly:[{mo:"Nov",xfers:12,appts:9},{mo:"Dec",xfers:16,appts:12},{mo:"Jan",xfers:19,appts:15},{mo:"Feb",xfers:22,appts:17},{mo:"Mar",xfers:24,appts:18},{mo:"Apr",xfers:19,appts:14}],
+    weekly:[{wk:"W1",xfers:4,appts:3},{wk:"W2",xfers:5,appts:4},{wk:"W3",xfers:6,appts:5},{wk:"W4",xfers:5,appts:4},{wk:"W5",xfers:6,appts:5},{wk:"W6",xfers:5,appts:3},{wk:"W7",xfers:4,appts:3},{wk:"W8",xfers:5,appts:4}],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const fmt = n => n?.toLocaleString() ?? "—";
+const fmtC = n => "$" + (n??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtP = n => ((n??0)*100).toFixed(1) + "%";
+const CLR = ["#00e59b","#4d8eff","#a78bfa","#ffb443","#ff4d6a","#22d3ee"];
+const h = (tag, attrs, ...kids) => {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === "style" && typeof v === "object") Object.assign(el.style, v);
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === "className") el.className = v;
+    else if (k === "innerHTML") el.innerHTML = v;
+    else el.setAttribute(k, v);
+  });
+  kids.flat(9).forEach(c => { if (c != null) el.append(typeof c === "string" ? c : c); });
+  return el;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let clients = SAMPLE;
+let currentTab = "summary"; // "summary" or client id
+let apiStatus = "loading";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadFromAPI() {
+  if (!API_KEY) { apiStatus = "demo"; render(); return; }
+  try {
+    // Try direct first, then CORS proxies for local file:// usage
+    const ENDPOINTS = [
+      "https://api.retellai.com/v2/list-calls",
+    ];
+
+    let res = null;
+    for (const url of ENDPOINTS) {
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ sort_order: "descending", limit: 1000 }),
+        });
+        if (res.ok) { console.log("API connected via:", url); break; }
+      } catch(_) { console.log("Trying next endpoint..."); res = null; }
+    }
+    if (!res || !res.ok) throw new Error("All API endpoints failed");
+
+    const calls = await res.json();
+    if (Array.isArray(calls) && calls.length > 0) {
+      console.log("=== LOADED " + calls.length + " CALLS FROM RETELLAI ===");
+      // Discover agents
+      const agentMap = {};
+      calls.forEach(c => {
+        const aid = c.agent_id || "unknown";
+        if (!agentMap[aid]) agentMap[aid] = { id:aid, name:aid, calls:[] };
+        agentMap[aid].calls.push(c);
+      });
+      console.log("=== AGENT IDS FOUND (map these to clients in CLIENT_CONFIG) ===");
+      Object.values(agentMap).forEach(a => console.log("Agent ID:", a.id, "| Calls:", a.calls.length));
+
+      // Auto-distribute agents across clients
+      const agentIds = Object.keys(agentMap);
+      const perClient = Math.ceil(agentIds.length / CLIENT_CONFIG.length);
+
+      clients = CLIENT_CONFIG.map((cfg, i) => {
+        const hasMapped = cfg.agentIds.length > 0;
+        const myIds = hasMapped ? cfg.agentIds : agentIds.slice(i*perClient, (i+1)*perClient);
+        const myCalls = calls.filter(c => myIds.includes(c.agent_id));
+        const xfers = myCalls.filter(c => c.disconnection_reason === "call_transfer").length;
+        const appts = xfers; // transfers = appointments for now
+        const monthMap = {};
+        const weekMs = 7*24*3600*1000;
+        const now = Date.now();
+
+        myCalls.forEach(c => {
+          if (!c.start_timestamp) return;
+          const d = new Date(c.start_timestamp);
+          const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
+          if (!monthMap[mo]) monthMap[mo] = {mo, xfers:0, appts:0, ts:d.getTime()};
+          if (c.disconnection_reason === "call_transfer") { monthMap[mo].xfers++; monthMap[mo].appts++; }
+        });
+
+        const weekly = Array.from({length:8},(_,wi) => {
+          const wStart = now - (8-wi)*weekMs, wEnd = wStart + weekMs;
+          const wc = myCalls.filter(c => c.start_timestamp >= wStart && c.start_timestamp < wEnd);
+          return { wk:"W"+(wi+1), xfers: wc.filter(c=>c.disconnection_reason==="call_transfer").length, appts: wc.filter(c=>c.disconnection_reason==="call_transfer").length };
+        });
+
+        return {
+          ...cfg, agents: myIds.map(id => agentMap[id]?.name || id),
+          status: cfg.creditBalance/cfg.creditsPurchased < .15 ? "low_credit" : "active",
+          totalCalls: myCalls.length, totalTransfers: xfers, totalAppointments: appts,
+          showed: Math.round(appts*.83), noShow: Math.round(appts*.17),
+          monthly: Object.values(monthMap).sort((a,b)=>a.ts-b.ts).slice(-6),
+          weekly,
+        };
+      });
+      apiStatus = "live";
+    } else { apiStatus = "demo"; }
+  } catch(e) {
+    console.error("API Error:", e);
+    apiStatus = "error";
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MINI BAR CHART (pure CSS)
+// ═══════════════════════════════════════════════════════════════════════════
+function miniBarChart(data, key1, key2, color1, color2) {
+  const max = Math.max(...data.map(d => Math.max(d[key1]||0, d[key2]||0)), 1);
+  const container = h("div", {className:"bars"});
+  data.forEach(d => {
+    const h1 = Math.max(((d[key1]||0)/max)*100, 3);
+    const h2 = Math.max(((d[key2]||0)/max)*100, 3);
+    const grp = h("div", {className:"bar-group"},
+      h("div", {className:"bar-pair"},
+        h("div", {className:"bar-col", "data-tooltip": key1+": "+d[key1], style:{height:h1+"%", background:color1, opacity:"0.7"}}),
+        h("div", {className:"bar-col", "data-tooltip": key2+": "+d[key2], style:{height:h2+"%", background:color2}}),
+      ),
+      h("div", {className:"bar-lbl"}, d.mo || d.wk || ""),
+    );
+    container.append(grp);
+  });
+  return container;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER CLIENT CARD (for summary page)
+// ═══════════════════════════════════════════════════════════════════════════
+function renderClientCard(c, idx) {
+  const xR = c.totalCalls>0 ? c.totalTransfers/c.totalCalls : 0;
+  const x2a = c.totalTransfers>0 ? c.totalAppointments/c.totalTransfers : 0;
+  const aR = c.totalCalls>0 ? c.totalAppointments/c.totalCalls : 0;
+  const sR = c.totalAppointments>0 ? c.showed/c.totalAppointments : 0;
+  const pct = c.creditBalance/c.creditsPurchased;
+  const barC = pct<.1 ? "var(--red)" : pct<.2 ? "var(--amb)" : "var(--grn)";
+  const apptsLeft = Math.floor(c.creditBalance/c.costPerAppointment);
+  const last = c.monthly[c.monthly.length-1];
+  const prev = c.monthly.length>1 ? c.monthly[c.monthly.length-2] : null;
+  const xChg = prev && prev.xfers>0 ? ((last.xfers-prev.xfers)/prev.xfers) : 0;
+  const aChg = prev && prev.appts>0 ? ((last.appts-prev.appts)/prev.appts) : 0;
+
+  const card = h("div", {className:"ccard", style:{borderLeft:"3px solid "+CLR[idx%CLR.length]}, onClick:()=>{currentTab=c.id;render();}},
+    // Header
+    h("div", {className:"cc-hdr"},
+      h("div", {className:"cc-meta"},
+        h("div", {className:"cc-name"}, c.name),
+        h("span", {className:"st "+(c.status==="low_credit"?"st-l":"st-a")}, h("span",{className:"st-d"}), c.status==="low_credit"?" Low Credit":" Active"),
+        h("span", {style:{fontSize:"10px",color:"var(--t3)"}}, (c.agents||[]).join(", ")),
+      ),
+      h("div", {className:"cc-right"},
+        h("div", {style:{textAlign:"right"}},
+          h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".6px"}},"Credit Bal"),
+          h("div",{className:"mo",style:{fontSize:"14px",fontWeight:"600",color:barC}},fmtC(c.creditBalance)),
+        ),
+        h("div", {style:{width:"80px"}},
+          h("div",{className:"cb",style:{height:"6px"}}, h("div",{className:"cf",style:{width:(pct*100)+"%",background:barC,height:"6px"}})),
+          h("div",{style:{fontSize:"8px",color:"var(--t3)",fontFamily:"var(--m)",marginTop:"2px"}},"~"+apptsLeft+" appts left"),
+        ),
+        h("button",{className:"btn-c",onClick:e=>{e.stopPropagation();showCreditModal(c);}},"+ Credit"),
+      ),
+    ),
+    // Metrics row
+    h("div",{className:"metrics"},
+      ...[ ["Total Calls",fmt(c.totalCalls),"var(--t0)",false],
+           ["Transfers",fmt(c.totalTransfers),"var(--pur)",false],
+           ["Appts Set",fmt(c.totalAppointments),"var(--grn)",true],
+           ["Show Rate",fmtP(sR),sR>=.8?"var(--blu)":sR>=.7?"var(--amb)":"var(--red)",false],
+           ["Call→Xfer",fmtP(xR),"var(--cyn)",false],
+           ["Xfer→Appt",fmtP(x2a),"var(--blu)",false],
+           ["Call→Appt",fmtP(aR),"var(--grn)",false],
+           ["$/Appt Rate",fmtC(c.costPerAppointment),"var(--t0)",false],
+      ].map(([lbl,val,clr,bold]) =>
+        h("div",{className:"met"},
+          h("div",{className:"met-l"},lbl),
+          h("div",{className:"met-v",style:{color:clr,fontWeight:bold?"700":"600"}},val),
+        )
+      ),
+    ),
+    // Bottom: weekly numbers + monthly chart
+    h("div",{className:"bot"},
+      // Weekly grid
+      h("div",{className:"bot-sec"},
+        h("div",{className:"bot-title"},"Weekly Breakdown (Last 8 Weeks)"),
+        h("div",{className:"wgrid"},
+          ...c.weekly.map(w =>
+            h("div",null,
+              h("div",{className:"wlbl"},w.wk),
+              h("div",{className:"wval",style:{color:"var(--pur)"}},w.xfers),
+              h("div",{className:"wsub"},"xfers"),
+              h("div",{className:"wval",style:{color:"var(--grn)"}},w.appts),
+              h("div",{className:"wsub"},"appts"),
+            )
+          ),
+        ),
+      ),
+      // Monthly mini chart
+      h("div",{className:"bot-sec"},
+        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}},
+          h("div",{className:"bot-title",style:{marginBottom:0}},"Monthly Trend"),
+          h("div",{className:"bar-chg"},
+            h("span",{style:{fontSize:"9px",color:"var(--t3)"}},
+              "Xfers: ", h("span",{className:"tag "+(xChg>=0?"tg":"tr")},(xChg>=0?"+":"")+(xChg*100).toFixed(0)+"%")),
+            h("span",{style:{fontSize:"9px",color:"var(--t3)"}},
+              "Appts: ", h("span",{className:"tag "+(aChg>=0?"tg":"tr")},(aChg>=0?"+":"")+(aChg*100).toFixed(0)+"%")),
+          ),
+        ),
+        miniBarChart(c.monthly, "xfers", "appts", "#a78bfa", "#00e59b"),
+      ),
+    ),
+  );
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER DETAIL PAGE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDetailPage(c) {
+  const spent = c.creditsPurchased - c.creditBalance;
+  const pct = c.creditBalance/c.creditsPurchased;
+  const barC = pct<.1?"var(--red)":pct<.2?"var(--amb)":"var(--grn)";
+  const xR = c.totalCalls>0?c.totalTransfers/c.totalCalls:0;
+  const x2a = c.totalTransfers>0?c.totalAppointments/c.totalTransfers:0;
+  const aR = c.totalCalls>0?c.totalAppointments/c.totalCalls:0;
+  const sR = c.totalAppointments>0?c.showed/c.totalAppointments:0;
+  const costAppt = c.totalAppointments>0?spent/c.totalAppointments:0;
+  const apptsLeft = Math.floor(c.creditBalance/c.costPerAppointment);
+  const xfersLeft = Math.floor(c.creditBalance/c.costPerTransfer);
+
+  const frag = document.createDocumentFragment();
+  frag.append(
+    h("div",{className:"dtl-back",onClick:()=>{currentTab="summary";render();}}, "← All Clients"),
+    h("h2",{style:{fontSize:"22px",fontWeight:"700",letterSpacing:"-.5px",marginBottom:"4px"}},c.name),
+    h("div",{style:{fontSize:"12px",color:"var(--t2)",marginBottom:"16px"}},(c.agents||[]).join(", ")),
+    // Hero
+    h("div",{className:"hero"},
+      h("div",{className:"hc"}, h("div",{className:"bar-top",style:{background:"var(--pur)"}}), h("div",{className:"hc-l"},"Transfers"), h("div",{className:"hc-v",style:{color:"var(--pur)"}},fmt(c.totalTransfers)), h("div",{className:"hc-s"},"from "+fmt(c.totalCalls)+" calls")),
+      h("div",{className:"hc"}, h("div",{className:"bar-top",style:{background:"var(--grn)"}}), h("div",{className:"hc-l"},"Appointments Set"), h("div",{className:"hc-v",style:{color:"var(--grn)"}},fmt(c.totalAppointments)), h("div",{className:"hc-s"},fmtP(x2a)+" of xfers converted")),
+      h("div",{className:"hc"}, h("div",{className:"bar-top",style:{background:"var(--blu)"}}), h("div",{className:"hc-l"},"Show Rate"), h("div",{className:"hc-v",style:{color:sR>=.8?"var(--blu)":sR>=.7?"var(--amb)":"var(--red)"}},fmtP(sR)), h("div",{className:"hc-s"},c.showed+" showed / "+c.noShow+" no-show")),
+      h("div",{className:"hc"}, h("div",{className:"bar-top",style:{background:"var(--cyn)"}}), h("div",{className:"hc-l"},"Credit Balance"), h("div",{className:"hc-v",style:{color:barC}},fmtC(c.creditBalance)),
+        h("div",{className:"cb",style:{marginTop:"6px",height:"6px"}},h("div",{className:"cf",style:{width:(pct*100)+"%",background:barC,height:"6px"}})),
+        h("div",{className:"hc-s"},"~"+apptsLeft+" appts left")),
+    ),
+    // KPIs
+    h("div",{className:"kpis"},
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Total Calls"),h("div",{className:"kp-v"},fmt(c.totalCalls))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Call→Xfer"),h("div",{className:"kp-v",style:{color:"var(--pur)"}},fmtP(xR))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Xfer→Appt"),h("div",{className:"kp-v",style:{color:"var(--blu)"}},fmtP(x2a))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Call→Appt"),h("div",{className:"kp-v",style:{color:"var(--grn)"}},fmtP(aR))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Actual $/Appt"),h("div",{className:"kp-v mo"},fmtC(costAppt))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Rate $/Appt"),h("div",{className:"kp-v mo"},fmtC(c.costPerAppointment))),
+    ),
+    // Charts
+    h("div",{className:"g2"},
+      h("div",{className:"cd"},
+        h("div",{className:"cd-t"},"Monthly Xfers & Appts"),
+        miniBarChart(c.monthly,"xfers","appts","#a78bfa","#00e59b"),
+      ),
+      h("div",{className:"cd"},
+        h("div",{className:"cd-t"},"Conversion Funnel"),
+        ...[
+          {lbl:"Total Calls",val:c.totalCalls,clr:"var(--t0)",prev:c.totalCalls},
+          {lbl:"Transfers",val:c.totalTransfers,clr:"var(--pur)",prev:c.totalCalls},
+          {lbl:"Appointments Set",val:c.totalAppointments,clr:"var(--grn)",prev:c.totalTransfers},
+          {lbl:"Showed Up",val:c.showed,clr:"var(--blu)",prev:c.totalAppointments},
+        ].map((item,i) => {
+          const w = c.totalCalls>0 ? (item.val/c.totalCalls)*100 : 0;
+          const stepConv = i>0 && item.prev>0 ? fmtP(item.val/item.prev)+" step conversion" : "";
+          return h("div",{className:"funnel-row"},
+            h("div",{className:"funnel-hdr"},
+              h("span",{className:"funnel-lbl"},item.lbl),
+              h("span",{className:"funnel-val",style:{color:item.clr}},fmt(item.val)),
+            ),
+            h("div",{className:"funnel-bg"}, h("div",{className:"funnel-fill",style:{width:w+"%",background:item.clr,opacity:".25"}})),
+            stepConv ? h("div",{className:"funnel-sub"},stepConv) : "",
+          );
+        }),
+      ),
+    ),
+    h("div",{className:"g2"},
+      // Weekly breakdown
+      h("div",{className:"cd"},
+        h("div",{className:"cd-t"},"Weekly Breakdown"),
+        h("div",{className:"wgrid"},
+          ...c.weekly.map(w =>
+            h("div",null,
+              h("div",{className:"wlbl"},w.wk),
+              h("div",{className:"wval",style:{color:"var(--pur)"}},w.xfers),
+              h("div",{className:"wsub"},"xfers"),
+              h("div",{className:"wval",style:{color:"var(--grn)"}},w.appts),
+              h("div",{className:"wsub"},"appts"),
+            )
+          ),
+        ),
+      ),
+      // Pricing
+      h("div",{className:"cd"},
+        h("div",{className:"cd-t"},"Credit Pricing & Runway"),
+        h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"10px"}},
+          h("div",{style:{background:"var(--bg4)",borderRadius:"var(--rs)",padding:"12px",textAlign:"center"}},
+            h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".8px"}},"Per Transfer"),
+            h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--pur)",marginTop:"4px"}},fmtC(c.costPerTransfer)),
+            h("div",{style:{fontSize:"9px",color:"var(--t3)",marginTop:"2px"}},"~"+xfersLeft+" remaining"),
+          ),
+          h("div",{style:{background:"var(--bg4)",borderRadius:"var(--rs)",padding:"12px",textAlign:"center"}},
+            h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".8px"}},"Per Appointment"),
+            h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--grn)",marginTop:"4px"}},fmtC(c.costPerAppointment)),
+            h("div",{style:{fontSize:"9px",color:"var(--t3)",marginTop:"2px"}},"~"+apptsLeft+" remaining"),
+          ),
+          h("div",{style:{background:"var(--bg4)",borderRadius:"var(--rs)",padding:"12px",textAlign:"center"}},
+            h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".8px"}},"Monthly Retainer"),
+            h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--cyn)",marginTop:"4px"}},fmtC(c.monthlyRetainer)),
+            h("div",{style:{fontSize:"9px",color:"var(--t3)",marginTop:"2px"}},"recurring"),
+          ),
+        ),
+      ),
+    ),
+  );
+  return frag;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CREDIT MODAL
+// ═══════════════════════════════════════════════════════════════════════════
+let creditTarget = null;
+function showCreditModal(c) { creditTarget = c; render(); }
+function closeCreditModal() { creditTarget = null; render(); }
+function addCredit() {
+  const input = document.getElementById("credit-input");
+  const amt = parseFloat(input?.value);
+  if (!amt || !creditTarget) return;
+  clients = clients.map(c => c.id===creditTarget.id ? {...c, creditBalance:c.creditBalance+amt, creditsPurchased:c.creditsPurchased+amt} : c);
+  closeCreditModal();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+
+  const statusClass = apiStatus==="live"?"api-live":apiStatus==="error"?"api-err":apiStatus==="loading"?"api-load":"api-demo";
+  const statusText = apiStatus==="live"?"Live Data":apiStatus==="error"?"API Error — Using Sample":apiStatus==="loading"?"Connecting...":"Sample Data";
+
+  // Header
+  app.append(
+    h("div",{className:"hdr"},
+      h("div",{className:"hdr-l"},
+        h("div",{className:"logo"},"RA"),
+        h("h1",null,"RetellAI",h("span",null,"Xfers & Appts")),
+      ),
+      h("div",{className:"hdr-r"},
+        h("div",{className:"api-st "+statusClass}, h("span",{className:"api-dot"}), " "+statusText),
+        h("div",{className:"dbg"}, new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})),
+      ),
+    ),
+  );
+
+  // Tabs
+  const nav = h("div",{className:"nav"},
+    h("button",{className:"ntab sum "+(currentTab==="summary"?"on":""),onClick:()=>{currentTab="summary";render();}},"All Clients"),
+  );
+  clients.forEach(c => {
+    nav.append(h("button",{className:"ntab "+(currentTab===c.id?"on":""),onClick:()=>{currentTab=c.id;render();}},
+      h("span",{className:"dot",style:{background:c.status==="low_credit"?"var(--amb)":"var(--grn)"}}), c.name
+    ));
+  });
+  app.append(nav);
+
+  // Content
+  if (currentTab === "summary") {
+    clients.forEach((c,i) => app.append(renderClientCard(c, i)));
+  } else {
+    const c = clients.find(x => x.id === currentTab);
+    if (c) app.append(renderDetailPage(c));
+  }
+
+  // Credit modal
+  if (creditTarget) {
+    const apptsEst = (val) => val > 0 ? Math.floor(val / creditTarget.costPerAppointment) : 0;
+    const overlay = h("div",{className:"mbg",onClick:closeCreditModal},
+      h("div",{className:"mdl",onClick:e=>e.stopPropagation()},
+        h("h3",null,"Add Credits"),
+        h("p",null,creditTarget.name+" | Balance: "+fmtC(creditTarget.creditBalance)+" | "+fmtC(creditTarget.costPerAppointment)+"/appt"),
+        h("label",null,"Credit Amount ($)"),
+        h("input",{type:"number",placeholder:"1000.00",id:"credit-input",autofocus:"true"}),
+        h("div",{className:"mda"},
+          h("button",{className:"btn-g",onClick:closeCreditModal},"Cancel"),
+          h("button",{className:"btn-p",onClick:addCredit},"Add Credits"),
+        ),
+      ),
+    );
+    app.append(overlay);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════
+render();
+loadFromAPI();
+</script>
+</body>
+</html>
