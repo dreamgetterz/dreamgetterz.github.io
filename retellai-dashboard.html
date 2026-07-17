@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>RetellAI â Xfers & Appts Dashboard</title>
+<title>RetellAI — Xfers & Appts Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
@@ -136,88 +136,245 @@ body{background:var(--bg0);color:var(--t0);font-family:var(--f);-webkit-font-smo
 <body>
 <div class="D" id="app"></div>
 <script>
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 // CONFIG
-// âââââââââââââââââââââââââSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".7px",fontWeight:"600",marginBottom:"6px"}},label),
-      h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"6px"}},
-        h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Calls"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--t0)"}},fmt(calls))),
-        h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Xfers"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--pur)"}},fmt(xfers))),
-        h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Appts"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--grn)",}},fmt(appts))),
-        h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"CallâXfer"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--cyn)"}},fmtP(xR))),
-      ),
-    );
-  }
+// ═══════════════════════════════════════════════════════════════════════════
+const API_KEY = "key_e1620ede48cd9f5447435a2d54ba";
+const CLIENT_CONFIG = [
+  { id:1, name:"AMITY", agentIds:[
+    "agent_cde4bbc19683cd11231e473bc5", // AMITY Tax Short Inbound RVM
+    "agent_fdddba5a29f1f863ec89c18ed2", // Tax Long Inbound RVM
+    "agent_5d3e2396d95de20774a107a34d", // Tax Short Inbound RVM
+    "agent_4471be66e41f48bc70587be719", // FULL TAX INVESTIGATION INTAKE V2
+    "agent_0588f444e5dbab02ce4a2eb9df", // FULL TAX INVESTIGATION INTAKE
+    "agent_13d00f4b15865eeda4cf9b173d", // Amy from American Tax Consultants
+    "agent_48139ece268f30b70a2c098953", // Tax Long Inbound RVM (copy)
+  ], creditBalance:4200, creditsPurchased:12000, costPerTransfer:15, costPerAppointment:35, monthlyRetainer:1500 },
+  { id:2, name:"Renzo", agentIds:[
+    "agent_da3b4d1009612ffdadfc36ab1f", // Debt Loan Short Inbound RVM
+    "agent_af9807d238a175a5718c797d47", // (unknown name - 126 calls, 15 xfers)
+    "agent_81b8a328740799c85bff41ebf8", // Debt Loan Long Inbound RVM
+    "agent_86309394f68221b9ea269628cf", // Debt Loan Short Inbound RVM
+    "agent_6b9362a9e9fbcb7f03f1b150c0", // DEBT INBND SHORT RVM Hardship Loan MP
+  ], creditBalance:3180, creditsPurchased:9000, costPerTransfer:18, costPerAppointment:40, monthlyRetainer:1200 },
+  { id:3, name:"AFN", agentIds:[
+    "agent_517c8bb223a19cd7d6e72b61ac", // American MTG Inbound
+    "agent_54762a31df33a3888b1f101617", // Long - American Mtg Network DM Intake
+    "agent_a991ae8a45d87d8e4feb686200", // Inbound RVM Prequal Agent V2
+    "agent_552588dfc7c491185f35b7e7fc", // Multi-State Agent
+  ], creditBalance:2640, creditsPurchased:7500, costPerTransfer:16, costPerAppointment:38, monthlyRetainer:1100 },
+];
 
-  const card = h("div", {className:"ccard", style:{borderLeft:"3px solid "+CLR[idx%CLR.length]}, onClick:()=>{currentTab=c.id;render();}},
-    // Header
-    h("div", { className:"cc-hdr"},
-      h("div", {className:"cc-meta"},
-        h("div", { className:"cc-name"}, c.name),
-        h("span", {className:"st "+(c.status==="low_credit"?"st-l":"st-a")}, h("span",{className:"st-d"}), c.status==="low_credit"?" Low Credit":" Active"),
-      ),
-      h("div", {className:"cc-right"},
-        h("div", {style:{textAlign:"right"}},
-          h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".6px"}},"Credit Bal"),
-          h("div",{className:"mo",style:{fontSize:"14px",fontWeight:"600",color:barC}},fmtC(c.creditBalance)),
-        ),
-        h("div", {style:{width:"80px"}},
-          h("div",{className:"cb",style:{height:"6px"}}, h("div",{className:"cf",style:{width:(pct*100)+"%",background:barC,height:"6px"}})),
-          h("div",{style:{fontSize:"8px",color:"var(--t3)",fontFamily:"var(--l)",marginTop:"2px"}},"~"+apptsLeft+" appts left"),
-        ),
-        h("button",{className:"btn-c",onClick:e=>{e.stopPropagation();showCreditModal(c);}},"+ Credit"),
-      ),
-    ),
-    // Today / This Week / This Month / All Time
-    h("div",{style:{display:"flex",gap:"8px",marginBottom:"12px",flexWrap:"wrap"}},
-      periodBlock("Today", c.todayCalls, c.todayTransfers, c.todayAppointments, "var(--grn)"),
-      periodBlock("This Week", c.weekCalls, c.weekTransfers, c.weekAppointments, "var(--blu)"),
-      periodBlock("This Month", c.monthCalls, c.monthTransfers, c.monthAppointments, "var(--pur)"),
-      periodBlock("All Time", c.totalCalls, c.totalTransfers, c.totalAppointments, "var(--t1)"),
-    ),
-    // Bottom: toggle + daily or weekly chart + monthly chart
-    h("div",{className:"toggle-group"},
-      h("button",{className:"toggle-btn "+(chartMode==="daily"?"active":""),onClick:e=>{e.stopPropagation();chartMode="daily";render();}},"Daily"),
-      h("button",{className:"toggle-btn "+(chartMode==="weekly"?"active":""),onClick:e=>{e.stopPropagation();chartMode="weekly";render();}},"Weekly"),
-    ),
-    h("div",{className:"bot"},
-      h("div",{className:"bot-sec"},
-        h("div",{className:"bot-title"},chartMode==="daily"?"Last 7 Days (Xfers & Appts)":"Last 8 Weeks (Xfers & Appts)"),
-        miniBarChart(chartMode==="daily"?c.daily:c.weekly, "xfers", "appts", "#a78bfa", "#00e59b"),
-      ),
-      h("div",{className:"bot-sec"},
-        h("div",{className:"bot-title"},"Monthly Trend"),
-        miniBarChart(c.monthly, "xfers", "appts", "#a78bfa", "#00e59b"),
-      ),
-    ),
-  );
-  return card;
+// ═══════════════════════════════════════════════════════════════════════════
+// SAMPLE DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const SAMPLE = [
+  { id:1, name:"AMITY", agents:["FULL TAX INBOUND","Tax Short Inbound"], status:"active",
+    creditBalance:4200, creditsPurchased:12000, costPerTransfer:15, costPerAppointment:35, monthlyRetainer:1500,
+    totalCalls:1165, totalTransfers:187, totalAppointments:142, showed:118, noShow:24,
+    todayCalls:9, todayTransfers:2, todayAppointments:1,
+    weekCalls:58, weekTransfers:10, weekAppointments:8,
+    monthCalls:208, monthTransfers:33, monthAppointments:24,
+    daily:[{d:"Thu",xfers:1,appts:1},{d:"Fri",xfers:2,appts:2},{d:"Sat",xfers:1,appts:0},{d:"Sun",xfers:0,appts:0},{d:"Mon",xfers:2,appts:2},{d:"Tue",xfers:2,appts:2},{d:"Today",xfers:2,appts:1}],
+    monthly:[{mo:"Nov",xfers:22,appts:16},{mo:"Dec",xfers:28,appts:21},{mo:"Jan",xfers:34,appts:26},{mo:"Feb",xfers:32,appts:25},{mo:"Mar",xfers:38,appts:30},{mo:"Apr",xfers:33,appts:24}],
+    weekly:[{wk:"W1",xfers:7,appts:5},{wk:"W2",xfers:9,appts:7},{wk:"W3",xfers:8,appts:6},{wk:"W4",xfers:10,appts:8},{wk:"W5",xfers:9,appts:7},{wk:"W6",xfers:11,appts:9},{wk:"W7",xfers:8,appts:6},{wk:"W8",xfers:10,appts:8}],
+  },
+  { id:2, name:"Renzo", agents:["Renzo Inbound","Renzo Long"], status:"active",
+    creditBalance:3180, creditsPurchased:9000, costPerTransfer:18, costPerAppointment:40, monthlyRetainer:1200,
+    totalCalls:792, totalTransfers:145, totalAppointments:108, showed:88, noShow:20,
+    todayCalls:6, todayTransfers:1, todayAppointments:1,
+    weekCalls:41, weekTransfers:6, weekAppointments:4,
+    monthCalls:152, monthTransfers:27, monthAppointments:19,
+    daily:[{d:"Thu",xfers:1,appts:1},{d:"Fri",xfers:1,appts:0},{d:"Sat",xfers:0,appts:0},{d:"Sun",xfers:0,appts:0},{d:"Mon",xfers:1,appts:1},{d:"Tue",xfers:2,appts:1},{d:"Today",xfers:1,appts:1}],
+    monthly:[{mo:"Nov",xfers:14,appts:10},{mo:"Dec",xfers:19,appts:14},{mo:"Jan",xfers:25,appts:19},{mo:"Feb",xfers:28,appts:22},{mo:"Mar",xfers:32,appts:24},{mo:"Apr",xfers:27,appts:19}],
+    weekly:[{wk:"W1",xfers:6,appts:4},{wk:"W2",xfers:7,appts:5},{wk:"W3",xfers:8,appts:6},{wk:"W4",xfers:7,appts:5},{wk:"W5",xfers:9,appts:7},{wk:"W6",xfers:8,appts:6},{wk:"W7",xfers:7,appts:5},{wk:"W8",xfers:6,appts:4}],
+  },
+  { id:3, name:"AFN", agents:["AFN Inbound","AFN Short"], status:"active",
+    creditBalance:2640, creditsPurchased:7500, costPerTransfer:16, costPerAppointment:38, monthlyRetainer:1100,
+    totalCalls:555, totalTransfers:112, totalAppointments:85, showed:71, noShow:14,
+    todayCalls:4, todayTransfers:1, todayAppointments:1,
+    weekCalls:28, weekTransfers:5, weekAppointments:4,
+    monthCalls:104, monthTransfers:19, monthAppointments:14,
+    daily:[{d:"Thu",xfers:0,appts:0},{d:"Fri",xfers:1,appts:1},{d:"Sat",xfers:1,appts:1},{d:"Sun",xfers:0,appts:0},{d:"Mon",xfers:1,appts:0},{d:"Tue",xfers:1,appts:1},{d:"Today",xfers:1,appts:1}],
+    monthly:[{mo:"Nov",xfers:12,appts:9},{mo:"Dec",xfers:16,appts:12},{mo:"Jan",xfers:19,appts:15},{mo:"Feb",xfers:22,appts:17},{mo:"Mar",xfers:24,appts:18},{mo:"Apr",xfers:19,appts:14}],
+    weekly:[{wk:"W1",xfers:4,appts:3},{wk:"W2",xfers:5,appts:4},{wk:"W3",xfers:6,appts:5},{wk:"W4",xfers:5,appts:4},{wk:"W5",xfers:6,appts:5},{wk:"W6",xfers:5,appts:3},{wk:"W7",xfers:4,appts:3},{wk:"W8",xfers:5,appts:4}],
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+const fmt = n => n?.toLocaleString() ?? "—";
+const fmtC = n => "$" + (n??0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtP = n => ((n??0)*100).toFixed(1) + "%";
+const CLR = ["#00e59b","#4d8eff","#a78bfa","#ffb443","#ff4d6a","#22d3ee"];
+const h = (tag, attrs, ...kids) => {
+  const el = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === "style" && typeof v === "object") Object.assign(el.style, v);
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (k === "className") el.className = v;
+    else if (k === "innerHTML") el.innerHTML = v;
+    else el.setAttribute(k, v);
+  });
+  kids.flat(9).forEach(c => { if (c != null) el.append(typeof c === "string" ? c : c); });
+  return el;
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let clients = SAMPLE;
+let currentTab = "summary"; // "summary" or client id
+let chartMode = "daily";    // "daily" or "weekly"
+let apiStatus = "loading";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadFromAPI() {
+  if (!API_KEY) { apiStatus = "demo"; render(); return; }
+  try {
+    // Try direct first, then CORS proxies for local file:// usage
+    const ENDPOINTS = [
+      "https://api.retellai.com/v2/list-calls",
+    ];
+
+    let res = null;
+    for (const url of ENDPOINTS) {
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ sort_order: "descending", limit: 1000 }),
+        });
+        if (res.ok) { console.log("API connected via:", url); break; }
+      } catch(_) { console.log("Trying next endpoint..."); res = null; }
+    }
+    if (!res || !res.ok) throw new Error("All API endpoints failed");
+
+    const calls = await res.json();
+    if (Array.isArray(calls) && calls.length > 0) {
+      console.log("=== LOADED " + calls.length + " CALLS FROM RETELLAI ===");
+      // Discover agents
+      const agentMap = {};
+      calls.forEach(c => {
+        const aid = c.agent_id || "unknown";
+        if (!agentMap[aid]) agentMap[aid] = { id:aid, name:aid, calls:[] };
+        agentMap[aid].calls.push(c);
+      });
+      console.log("=== AGENT IDS FOUND (map these to clients in CLIENT_CONFIG) ===");
+      Object.values(agentMap).forEach(a => console.log("Agent ID:", a.id, "| Calls:", a.calls.length));
+
+      // Auto-distribute agents across clients
+      const agentIds = Object.keys(agentMap);
+      const perClient = Math.ceil(agentIds.length / CLIENT_CONFIG.length);
+
+      const dayMs = 24*3600*1000;
+      const weekMs = 7*dayMs;
+      const now = Date.now();
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+      const isXfer = c => c.disconnection_reason === "call_transfer";
+      const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+      clients = CLIENT_CONFIG.map((cfg, i) => {
+        const hasMapped = cfg.agentIds.length > 0;
+        const myIds = hasMapped ? cfg.agentIds : agentIds.slice(i*perClient, (i+1)*perClient);
+        const myCalls = calls.filter(c => myIds.includes(c.agent_id));
+        const xfers = myCalls.filter(isXfer).length;
+        const appts = xfers; // transfers = appointments for now
+        const monthMap = {};
+
+        myCalls.forEach(c => {
+          if (!c.start_timestamp) return;
+          const d = new Date(c.start_timestamp);
+          const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
+          if (!monthMap[mo]) monthMap[mo] = {mo, xfers:0, appts:0, ts:d.getTime()};
+          if (isXfer(c)) { monthMap[mo].xfers++; monthMap[mo].appts++; }
+        });
+
+        const weekly = Array.from({length:8},(_,wi) => {
+          const wStart = now - (8-wi)*weekMs, wEnd = wStart + weekMs;
+          const wc = myCalls.filter(c => c.start_timestamp >= wStart && c.start_timestamp < wEnd);
+          const wx = wc.filter(isXfer).length;
+          return { wk:"W"+(wi+1), xfers:wx, appts:wx };
+        });
+
+        const daily = Array.from({length:7},(_,di) => {
+          const dStart = todayStart.getTime() - (6-di)*dayMs, dEnd = dStart + dayMs;
+          const dc = myCalls.filter(c => c.start_timestamp >= dStart && c.start_timestamp < dEnd);
+          const dx = dc.filter(isXfer).length;
+          const lbl = di === 6 ? "Today" : DAY_NAMES[new Date(dStart).getDay()];
+          return { d:lbl, xfers:dx, appts:dx };
+        });
+
+        const todayCalls = myCalls.filter(c => c.start_timestamp >= todayStart.getTime()).length;
+        const todayTransfers = myCalls.filter(c => c.start_timestamp >= todayStart.getTime() && isXfer(c)).length;
+        const weekCalls = myCalls.filter(c => c.start_timestamp >= now - weekMs).length;
+        const weekTransfers = myCalls.filter(c => c.start_timestamp >= now - weekMs && isXfer(c)).length;
+        const monthCalls = myCalls.filter(c => c.start_timestamp >= monthStart.getTime()).length;
+        const monthTransfers = myCalls.filter(c => c.start_timestamp >= monthStart.getTime() && isXfer(c)).length;
+
+        return {
+          ...cfg, agents: myIds.map(id => agentMap[id]?.name || id),
+          status: cfg.creditBalance/cfg.creditsPurchased < .15 ? "low_credit" : "active",
+          totalCalls: myCalls.length, totalTransfers: xfers, totalAppointments: appts,
+          todayCalls, todayTransfers, todayAppointments: todayTransfers,
+          weekCalls, weekTransfers, weekAppointments: weekTransfers,
+          monthCalls, monthTransfers, monthAppointments: monthTransfers,
+          showed: Math.round(appts*.83), noShow: Math.round(appts*.17),
+          monthly: Object.values(monthMap).sort((a,b)=>a.ts-b.ts).slice(-6),
+          weekly, daily,
+        };
+      });
+      apiStatus = "live";
+    } else { apiStatus = "demo"; }
+  } catch(e) {
+    console.error("API Error:", e);
+    apiStatus = "error";
+  }
+  render();
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// RENDER DETAIL PAGE
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function renderDetailPage(c) {
-  const spent = c.creditsPurchased - c.creditBalance;
-  const pct = c.creditBalance/c.creditsPurchased;
-  const barC = pct<.1?"var(--red)":pct<.2?"var(--amb)":"var(--grn)";
-  const xR = c.totalCalls>0?c.totalTransfers/c.totalCalls:0;
-  const x2a = c.totalTransfers>0?c.totalAppointments/c.totalTransfers:0;
-  const aR = c.totalCalls>0?c.totalAppointments/c.totalCalls:0;
-  const sR = c.totalAppointments>0?c.showed/c.totalAppointments:0;
-  const costAppt = c.totalAppointments>0?spent/c.totalAppointments:0;
-  const apptsLeft = Math.floor(c.creditBalance/c.costPerAppointment);
-  const xfersLeft = Math.floor(c.creditBalance/c.costPerTransfer);
+// ═══════════════════════════════════════════════════════════════════════════
+// MINI BAR CHART (pure CSS)
+// ═══════════════════════════════════════════════════════════════════════════
+function miniBarChart(data, key1, key2, color1, color2) {
+  const max = Math.max(...data.map(d => Math.max(d[key1]||0, d[key2]||0)), 1);
+  const container = h("div", {className:"bars"});
+  data.forEach(d => {
+    const h1 = Math.max(((d[key1]||0)/max)*100, 3);
+    const h2 = Math.max(((d[key2]||0)/max)*100, 3);
+    const grp = h("div", {className:"bar-group"},
+      h("div", {className:"bar-pair"},
+        h("div", {className:"bar-col", "data-tooltip": key1+": "+d[key1], style:{height:h1+"%", background:color1, opacity:"0.7"}}),
+        h("div", {className:"bar-col", "data-tooltip": key2+": "+d[key2], style:{height:h2+"%", background:color2}}),
+      ),
+      h("div", {className:"bar-lbl"}, d.mo || d.wk || d.d || ""),
+    );
+    container.append(grp);
+  });
+  return container;
+}
 
-  const frag = document.createDocumentFragment();
-  frag.append(
-    h("div",{className:"dtl-back",onClick:()=>{currentTab="summary";render();}}, "â All Clients"),
-    h("h2",{style:{fontSize:"22px",fontWeight:"700",letterSpacing:"-.5px",marginBottom:"4px"}},c.name),
-    h("div",{style:{fontSize:"12px",color:"var(--t2)",marginBottom:"16px"}},(c.agents||[]).join(", Size:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".7px",fontWeight:"600",marginBottom:"6px"}},label),
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER CLIENT CARD (for summary page)
+// ═══════════════════════════════════════════════════════════════════════════
+function renderClientCard(c, idx) {
+  const pct = c.creditBalance/c.creditsPurchased;
+  const barC = pct<.1 ? "var(--red)" : pct<.2 ? "var(--amb)" : "var(--grn)";
+  const apptsLeft = Math.floor(c.creditBalance/c.costPerAppointment);
+
+  function periodBlock(label, calls, xfers, appts, accent) {
+    const xR = calls>0 ? xfers/calls : 0;
+    return h("div",{style:{flex:"1",minWidth:"180px",background:"var(--bg3)",borderRadius:"var(--rs)",padding:"10px",borderTop:"3px solid "+accent}},
+      h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase",letterSpacing:".7px",fontWeight:"600",marginBottom:"6px"}},label),
       h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"6px"}},
         h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Calls"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--t0)"}},fmt(calls))),
         h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Xfers"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--pur)"}},fmt(xfers))),
         h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Appts"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--grn)"}},fmt(appts))),
-        h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"CallâXfer"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--cyn)"}},fmtP(xR))),
+        h("div",null, h("div",{style:{fontSize:"9px",color:"var(--t3)",textTransform:"uppercase"}},"Call→Xfer"), h("div",{className:"mo",style:{fontSize:"20px",fontWeight:"600",color:"var(--cyn)"}},fmtP(xR))),
       ),
     );
   }
@@ -236,7 +393,7 @@ function renderDetailPage(c) {
         ),
         h("div", {style:{width:"80px"}},
           h("div",{className:"cb",style:{height:"6px"}}, h("div",{className:"cf",style:{width:(pct*100)+"%",background:barC,height:"6px"}})),
-          h("div",{style:{fontSize:"8px",color:"var(--t3)",fontFamily:"var(--l)",marginTop:"2px"}},"~"+apptsLeft+" appts left"),
+          h("div",{style:{fontSize:"8px",color:"var(--t3)",fontFamily:"var(--m)",marginTop:"2px"}},"~"+apptsLeft+" appts left"),
         ),
         h("button",{className:"btn-c",onClick:e=>{e.stopPropagation();showCreditModal(c);}},"+ Credit"),
       ),
@@ -267,24 +424,22 @@ function renderDetailPage(c) {
   return card;
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 // RENDER DETAIL PAGE
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 function renderDetailPage(c) {
   const spent = c.creditsPurchased - c.creditBalance;
   const pct = c.creditBalance/c.creditsPurchased;
   const barC = pct<.1?"var(--red)":pct<.2?"var(--amb)":"var(--grn)";
   const xR = c.totalCalls>0?c.totalTransfers/c.totalCalls:0;
   const x2a = c.totalTransfers>0?c.totalAppointments/c.totalTransfers:0;
-  const aR = c.totalCalls>0?c.totalAppointments/c.totalCalls:0;
-  const sR = c.totalAppointments>0?c.showed/c.totalAppointments:0;
   const costAppt = c.totalAppointments>0?spent/c.totalAppointments:0;
   const apptsLeft = Math.floor(c.creditBalance/c.costPerAppointment);
   const xfersLeft = Math.floor(c.creditBalance/c.costPerTransfer);
 
   const frag = document.createDocumentFragment();
   frag.append(
-    h("div",{className:"dtl-back",onClick:()=>{currentTab="summary";render();}}, "â All Clients"),
+    h("div",{className:"dtl-back",onClick:()=>{currentTab="summary";render();}}, "← All Clients"),
     h("h2",{style:{fontSize:"22px",fontWeight:"700",letterSpacing:"-.5px",marginBottom:"4px"}},c.name),
     h("div",{style:{fontSize:"12px",color:"var(--t2)",marginBottom:"16px"}},(c.agents||[]).join(", ")),
     // Hero - TODAY's numbers
@@ -300,8 +455,8 @@ function renderDetailPage(c) {
     h("div",{className:"kpis"},
       h("div",{className:"kp"},h("div",{className:"kp-l"},"All-Time Calls"),h("div",{className:"kp-v"},fmt(c.totalCalls))),
       h("div",{className:"kp"},h("div",{className:"kp-l"},"All-Time Xfers"),h("div",{className:"kp-v",style:{color:"var(--pur)"}},fmt(c.totalTransfers))),
-      h("div",{className:"kp"},h("div",{className:"kp-l"},"CallâXfer"),h("div",{className:"kp-v",style:{color:"var(--cyn)"}},fmtP(xR))),
-      h("div",{className:"kp"},h("div",{className:"kp-l"},"XferâAppt"),h("div",{className:"kp-v",style:{color:"var(--blu)"}},fmtP(x2a))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Call→Xfer"),h("div",{className:"kp-v",style:{color:"var(--cyn)"}},fmtP(xR))),
+      h("div",{className:"kp"},h("div",{className:"kp-l"},"Xfer→Appt"),h("div",{className:"kp-v",style:{color:"var(--blu)"}},fmtP(x2a))),
       h("div",{className:"kp"},h("div",{className:"kp-l"},"Actual $/Appt"),h("div",{className:"kp-v mo"},fmtC(costAppt))),
       h("div",{className:"kp"},h("div",{className:"kp-l"},"Rate $/Appt"),h("div",{className:"kp-v mo"},fmtC(c.costPerAppointment))),
     ),
@@ -379,9 +534,9 @@ function renderDetailPage(c) {
   return frag;
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 // CREDIT MODAL
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 let creditTarget = null;
 function showCreditModal(c) { creditTarget = c; render(); }
 function closeCreditModal() { creditTarget = null; render(); }
@@ -393,15 +548,15 @@ function addCredit() {
   closeCreditModal();
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN RENDER
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 function render() {
   const app = document.getElementById("app");
   app.innerHTML = "";
 
   const statusClass = apiStatus==="live"?"api-live":apiStatus==="error"?"api-err":apiStatus==="loading"?"api-load":"api-demo";
-  const statusText = apiStatus==="live"?"Live Data":apiStatus==="error"?"API Error â Using Sample":apiStatus==="loading"?"Connecting...":"Sample Data";
+  const statusText = apiStatus==="live"?"Live Data":apiStatus==="error"?"API Error — Using Sample":apiStatus==="loading"?"Connecting...":"Sample Data";
 
   // Header
   app.append(
@@ -423,7 +578,7 @@ function render() {
   );
   clients.forEach(c => {
     nav.append(h("button",{className:"ntab "+(currentTab===c.id?"on":""),onClick:()=>{currentTab=c.id;render();}},
-      h("span",{className:"dot",style:{"background:c.status==="low_credit"?"var(--amb)":"var(--grn)"}}, c.name
+      h("span",{className:"dot",style:{background:c.status==="low_credit"?"var(--amb)":"var(--grn)"}}), c.name
     ));
   });
   app.append(nav);
@@ -438,7 +593,6 @@ function render() {
 
   // Credit modal
   if (creditTarget) {
-    const apptsEst = (val) => val > 0 ? Math.floor(val / creditTarget.costPerAppointment) : 0;
     const overlay = h("div",{className:"mbg",onClick:closeCreditModal},
       h("div",{className:"mdl",onClick:e=>e.stopPropagation()},
         h("h3",null,"Add Credits"),
@@ -455,9 +609,9 @@ function render() {
   }
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 // BOOT
-// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ═══════════════════════════════════════════════════════════════════════════
 render();
 loadFromAPI();
 </script>
