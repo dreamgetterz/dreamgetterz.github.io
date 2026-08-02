@@ -139,7 +139,10 @@ body{background:var(--bg0);color:var(--t0);font-family:var(--f);-webkit-font-smo
 // ═══════════════════════════════════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════════════════════════════════
-const API_KEY = "key_e1620ede48cd9f5447435a2d54ba";
+// SECURITY: never hard-code your RetellAI API key here — this file is public.
+// To use live data, open the browser console once and run:
+//   localStorage.setItem("retell_api_key", "YOUR_KEY")
+const API_KEY = localStorage.getItem("retell_api_key") || "";
 const CLIENT_CONFIG = [
   { id:1, name:"AMITY", agentIds:[
     "agent_cde4bbc19683cd11231e473bc5", // AMITY Tax Short Inbound RVM
