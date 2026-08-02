@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Credit Report Training by Debt Shop in a Box - Learn to read, understand, and talk through credit reports like an elite closer.">
+  <meta name="robots" content="noindex">
+  <meta name="author" content="Debt Shop in a Box">
+  <title>Credit Report Training - Debt Shop in a Box</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e40af;
+      --secondary: #15803d;
+      --accent: #facc15;
+      --bg-gradient: linear-gradient(to bottom, #d1d5db, #9ca3af);
+      --text-color: #1f2937;
+      --section-bg: #f3f4f6;
+      --card-bg: #ffffff;
+      --card-text: #4b5563;
+      --card-heading: #15803d;
+      --shadow-color: rgba(0, 0, 0, 0.2);
+    }
+    body.dark-mode {
+      --bg-gradient: linear-gradient(to bottom, #1f2937, #374151);
+      --text-color: #e5e7eb;
+      --section-bg: #374151;
+      --card-bg: #4b5563;
+      --card-text: #d1d5db;
+      --card-heading: #10b981;
+      --shadow-color: rgba(255, 255, 255, 0.1);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+    }
+    h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
+    .header-bg { background: linear-gradient(to bottom, #0f5027, #1a7f6d, #4a6cd4); }
+    .gradient-text {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px var(--shadow-color);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px var(--shadow-color);
+      transition: all 0.3s ease;
+    }
+    .section-divider {
+      height: 4px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      margin: 2rem 0;
+    }
+    .module summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .module summary::-webkit-details-marker { display: none; }
+    .module summary .chevron { transition: transform 0.2s ease; flex-shrink: 0; }
+    .module[open] summary .chevron { transform: rotate(180deg); }
+    .pill {
+      display: inline-block;
+      padding: 0.15rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .score-bar { display: flex; border-radius: 0.5rem; overflow: hidden; height: 2.5rem; }
+    .score-bar div {
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+    }
+    table.report th, table.report td { padding: 0.5rem 0.75rem; text-align: left; }
+    table.report th {
+      background: var(--primary); color: white; font-size: 0.8rem;
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    table.report tr:nth-child(even) td { background: rgba(30, 64, 175, 0.06); }
+    .quiz-option {
+      display: block; width: 100%; text-align: left;
+      padding: 0.6rem 1rem; margin-top: 0.5rem;
+      border: 2px solid var(--primary); border-radius: 0.5rem;
+      background: transparent; color: var(--text-color); cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .quiz-option:hover { background: rgba(250, 204, 21, 0.25); }
+    .quiz-option.correct { background: #15803d; color: white; border-color: #15803d; }
+    .quiz-option.wrong { background: #b91c1c; color: white; border-color: #b91c1c; }
+    .dark-mode-toggle { cursor: pointer; }
+    a:focus, button:focus, summary:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body>
+  <header class="header-bg text-white py-10 relative">
+    <div class="dark-mode-toggle absolute top-4 left-4" onclick="toggleDarkMode()" role="button" aria-label="Toggle dark mode">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+      </svg>
+    </div>
+    <div class="container max-w-5xl mx-auto px-4 text-center">
+      <p class="text-lg mb-2 text-yellow-300 font-semibold tracking-wide uppercase">Debt Shop in a Box &mdash; Master Jedi Training Series</p>
+      <h1 class="text-4xl md:text-6xl font-extrabold mb-4">Credit Report Training</h1>
+      <p class="text-xl md:text-2xl max-w-3xl mx-auto">Read any credit report in under 5 minutes, build instant credibility, and turn the report into your most powerful closing tool.</p>
+      <a href="/" class="inline-block mt-6 bg-[var(--accent)] text-blue-900 font-semibold py-2 px-5 rounded-lg hover:scale-105 transition-transform">&larr; Back to Home</a>
+    </div>
+  </header>
+
+  <main class="container max-w-5xl mx-auto px-4 py-10">
+
+    <!-- WHY IT MATTERS -->
+    <section class="card p-6 md:p-8 mb-8">
+      <h2 class="text-3xl font-extrabold gradient-text mb-4">Why Every Elite Closer Masters the Credit Report</h2>
+      <p class="text-lg text-[var(--card-text)] mb-3">The credit report is the client's financial story told in one document. Reps who can read it fluently do three things average reps can't:</p>
+      <ul class="list-disc list-inside text-[var(--card-text)] space-y-2 text-lg">
+        <li><strong>Build authority in seconds.</strong> When you narrate a client's own report back to them accurately, trust skyrockets.</li>
+        <li><strong>Qualify with precision.</strong> Debt totals, creditor mix, delinquency status, and utilization tell you exactly which program fits &mdash; before the client says a word.</li>
+        <li><strong>Handle objections with facts.</strong> "My credit is fine" dissolves when you can point to 89% utilization and two 60-day lates.</li>
+      </ul>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- MODULE 1 -->
+    <details class="module card p-6 md:p-8 mb-6" open>
+      <summary>
+        <h2 class="text-2xl md:text-3xl font-extrabold gradient-text">Module 1: Credit Report Fundamentals</h2>
+        <svg class="chevron w-6 h-6 text-[var(--card-heading)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </summary>
+      <div class="mt-6 space-y-6">
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">The Three Bureaus</h3>
+          <p class="text-[var(--card-text)] mb-3">Credit data lives at three independent, competing companies. Lenders may report to one, two, or all three &mdash; which is why the same person can have three different scores.</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="card card-hover p-4 border-t-4 border-blue-700">
+              <h4 class="font-bold text-lg mb-1">Equifax</h4>
+              <p class="text-sm text-[var(--card-text)]">Often heavier coverage in the South/East. Score range typically 300&ndash;850.</p>
+            </div>
+            <div class="card card-hover p-4 border-t-4 border-green-700">
+              <h4 class="font-bold text-lg mb-1">Experian</h4>
+              <p class="text-sm text-[var(--card-text)]">Largest bureau globally. Most commonly pulled for auto and personal lending.</p>
+            </div>
+            <div class="card card-hover p-4 border-t-4 border-yellow-500">
+              <h4 class="font-bold text-lg mb-1">TransUnion</h4>
+              <p class="text-sm text-[var(--card-text)]">Widely used by credit card issuers and rental screening.</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">The Five Sections of Every Report</h3>
+          <ol class="list-decimal list-inside text-[var(--card-text)] space-y-2">
+            <li><strong>Personal Information</strong> &mdash; names, addresses, employers, DOB. Verify identity here; mismatches can flag mixed files.</li>
+            <li><strong>Tradelines (Accounts)</strong> &mdash; every credit card, loan, and mortgage: balance, limit, payment history, status. <em>This is where you'll spend 80% of your time.</em></li>
+            <li><strong>Derogatory Items</strong> &mdash; collections, charge-offs, repossessions. The pain points that drive the conversation.</li>
+            <li><strong>Public Records</strong> &mdash; bankruptcies (Chapter 7 / 13). Tax liens and civil judgments no longer appear on standard reports.</li>
+            <li><strong>Inquiries</strong> &mdash; hard pulls (affect score, visible to lenders) vs. soft pulls (no score impact).</li>
+          </ol>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">How Long Things Stick</h3>
+          <div class="overflow-x-auto">
+            <table class="report w-full text-[var(--card-text)] text-sm rounded-lg overflow-hidden">
+              <thead><tr><th>Item</th><th>Time on Report</th></tr></thead>
+              <tbody>
+                <tr><td>Late payments (30/60/90+)</td><td>7 years from delinquency</td></tr>
+                <tr><td>Collections &amp; charge-offs</td><td>7 years from original delinquency date</td></tr>
+                <tr><td>Chapter 13 bankruptcy</td><td>7 years from filing</td></tr>
+                <tr><td>Chapter 7 bankruptcy</td><td>10 years from filing</td></tr>
+                <tr><td>Hard inquiries</td><td>2 years (score impact fades after ~12 months)</td></tr>
+                <tr><td>Positive closed accounts</td><td>Up to 10 years</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- MODULE 2 -->
+    <details class="module card p-6 md:p-8 mb-6">
+      <summary>
+        <h2 class="text-2xl md:text-3xl font-extrabold gradient-text">Module 2: How the Score Is Built</h2>
+        <svg class="chevron w-6 h-6 text-[var(--card-heading)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </summary>
+      <div class="mt-6 space-y-6">
+        <p class="text-[var(--card-text)]">FICO is the score most lenders use. Memorize this breakdown cold &mdash; clients are amazed when you explain their own score to them.</p>
+        <div class="score-bar" role="img" aria-label="FICO score composition: payment history 35%, amounts owed 30%, length of history 15%, new credit 10%, credit mix 10%">
+          <div style="width:35%; background:#1e40af;">35%</div>
+          <div style="width:30%; background:#15803d;">30%</div>
+          <div style="width:15%; background:#ca8a04;">15%</div>
+          <div style="width:10%; background:#9333ea;">10%</div>
+          <div style="width:10%; background:#0e7490;">10%</div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card card-hover p-4"><span class="pill text-white" style="background:#1e40af;">35%</span> <strong class="ml-2">Payment History</strong><p class="text-sm text-[var(--card-text)] mt-1">On-time vs. late payments. One 30-day late can drop a 780 score by 90&ndash;110 points.</p></div>
+          <div class="card card-hover p-4"><span class="pill text-white" style="background:#15803d;">30%</span> <strong class="ml-2">Amounts Owed (Utilization)</strong><p class="text-sm text-[var(--card-text)] mt-1">Balances &divide; limits on revolving accounts. Under 30% is okay; under 10% is elite. Maxed cards crush scores even with perfect payments.</p></div>
+          <div class="card card-hover p-4"><span class="pill text-white" style="background:#ca8a04;">15%</span> <strong class="ml-2">Length of History</strong><p class="text-sm text-[var(--card-text)] mt-1">Average age of accounts. Why closing old cards can backfire.</p></div>
+          <div class="card card-hover p-4"><span class="pill text-white" style="background:#9333ea;">10%</span> <strong class="ml-2">New Credit</strong><p class="text-sm text-[var(--card-text)] mt-1">Recent hard inquiries and newly opened accounts.</p></div>
+          <div class="card card-hover p-4 md:col-span-2"><span class="pill text-white" style="background:#0e7490;">10%</span> <strong class="ml-2">Credit Mix</strong><p class="text-sm text-[var(--card-text)] mt-1">Variety of revolving (cards) and installment (auto, mortgage, personal) accounts.</p></div>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">Score Ranges to Quote on Calls</h3>
+          <div class="overflow-x-auto">
+            <table class="report w-full text-[var(--card-text)] text-sm rounded-lg overflow-hidden">
+              <thead><tr><th>Range</th><th>Rating</th><th>What It Means for the Client</th></tr></thead>
+              <tbody>
+                <tr><td>800&ndash;850</td><td>Exceptional</td><td>Best rates on everything</td></tr>
+                <tr><td>740&ndash;799</td><td>Very Good</td><td>Approved with strong terms</td></tr>
+                <tr><td>670&ndash;739</td><td>Good</td><td>Approved, average rates</td></tr>
+                <tr><td>580&ndash;669</td><td>Fair</td><td>Subprime rates, limited options</td></tr>
+                <tr><td>300&ndash;579</td><td>Poor</td><td>Frequent denials, deposits required</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- MODULE 3 -->
+    <details class="module card p-6 md:p-8 mb-6">
+      <summary>
+        <h2 class="text-2xl md:text-3xl font-extrabold gradient-text">Module 3: Reading a Tradeline Like a Pro</h2>
+        <svg class="chevron w-6 h-6 text-[var(--card-heading)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </summary>
+      <div class="mt-6 space-y-6">
+        <p class="text-[var(--card-text)]">Here's a sample tradeline the way it appears on a real report. Learn to scan the bolded fields first &mdash; balance, status, and payment history grid.</p>
+        <div class="overflow-x-auto">
+          <table class="report w-full text-[var(--card-text)] text-sm rounded-lg overflow-hidden">
+            <tbody>
+              <tr><th class="w-48">Creditor</th><td>CAPITAL ONE BANK USA</td></tr>
+              <tr><th>Account Type</th><td>Revolving &mdash; Credit Card</td></tr>
+              <tr><th>Date Opened</th><td>03/2019</td></tr>
+              <tr><th>Credit Limit</th><td>$5,000</td></tr>
+              <tr><th>Balance</th><td><strong>$4,450</strong> &nbsp;<span class="pill text-white" style="background:#b91c1c;">89% utilization</span></td></tr>
+              <tr><th>Monthly Payment</th><td>$135 (minimum)</td></tr>
+              <tr><th>Status</th><td><strong>Open &mdash; 60 days past due</strong></td></tr>
+              <tr><th>Payment History</th><td style="font-family:monospace; letter-spacing:2px;">OK OK OK OK 30 OK OK 30 60 &larr; most recent</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">What This Tradeline Tells You in 10 Seconds</h3>
+          <ul class="list-disc list-inside text-[var(--card-text)] space-y-2">
+            <li><strong>89% utilization</strong> &mdash; the card is nearly maxed. Minimum payments are mostly interest; the balance isn't moving.</li>
+            <li><strong>Rolling delinquency (30 &rarr; 30 &rarr; 60)</strong> &mdash; the client is sliding, not recovering. Next stop is 90 days, then charge-off.</li>
+            <li><strong>$135 minimum on $4,450 at ~29% APR</strong> &mdash; roughly $107 of that payment is interest. Do this math out loud with the client.</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">Status Codes You Must Know</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-[var(--card-text)]">
+            <div class="card p-3"><strong>Current / Pays as Agreed</strong> &mdash; on time, no action needed.</div>
+            <div class="card p-3"><strong>30 / 60 / 90 / 120</strong> &mdash; days past due. Severity and score damage escalate at each stage.</div>
+            <div class="card p-3"><strong>Charge-Off (CO)</strong> &mdash; creditor wrote off the debt (usually at 180 days). Debt is still owed and still collectible.</div>
+            <div class="card p-3"><strong>Collection</strong> &mdash; sold or assigned to a collection agency. Often appears as a second tradeline for the same debt.</div>
+            <div class="card p-3"><strong>Settled / Paid Settled</strong> &mdash; resolved for less than full balance.</div>
+            <div class="card p-3"><strong>Included in Bankruptcy</strong> &mdash; discharged; not collectible.</div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- MODULE 4 -->
+    <details class="module card p-6 md:p-8 mb-6">
+      <summary>
+        <h2 class="text-2xl md:text-3xl font-extrabold gradient-text">Module 4: Turning the Report into the Close</h2>
+        <svg class="chevron w-6 h-6 text-[var(--card-heading)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </summary>
+      <div class="mt-6 space-y-6">
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">The 5-Minute Report Walkthrough</h3>
+          <ol class="list-decimal list-inside text-[var(--card-text)] space-y-2">
+            <li><strong>Total the unsecured debt.</strong> Cards, personal loans, medical, collections. This is the enrollment number.</li>
+            <li><strong>Scan statuses.</strong> Count how many accounts are current vs. delinquent vs. charged off. This tells you urgency.</li>
+            <li><strong>Check utilization.</strong> High utilization + current payments = client treading water. Perfect candidate for a conversation about where this is heading.</li>
+            <li><strong>Note the minimum payment total.</strong> Add up every minimum. Compare it to what a program payment would be. That delta is your value statement.</li>
+            <li><strong>Find the story.</strong> A cluster of lates starting the same month usually means a life event &mdash; job loss, medical, divorce. Ask about it with empathy.</li>
+          </ol>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">Scripted Transitions That Work</h3>
+          <div class="space-y-3">
+            <div class="card p-4 border-l-4 border-[var(--secondary)]">
+              <p class="text-[var(--card-text)] italic">"I'm looking at your report right now &mdash; you've got about $23,400 in unsecured debt across 7 accounts, and you're paying roughly $780 a month in minimums. Can I show you where that $780 is actually going?"</p>
+            </div>
+            <div class="card p-4 border-l-4 border-[var(--secondary)]">
+              <p class="text-[var(--card-text)] italic">"Your Capital One card is at 89% of its limit. Even though you've never missed a payment on it, that one number is costing you about 60&ndash;80 points on your score. Did anyone ever explain that to you?"</p>
+            </div>
+            <div class="card p-4 border-l-4 border-[var(--secondary)]">
+              <p class="text-[var(--card-text)] italic">"I can see things were fine until March of last year, and then three accounts went late in the same month. What happened in March?"</p>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 border-2 border-[var(--primary)] rounded-lg">
+          <h3 class="text-xl font-semibold text-[var(--card-heading)] mb-2">Compliance Non-Negotiables</h3>
+          <ul class="list-disc list-inside text-[var(--card-text)] space-y-2">
+            <li><strong>Permissible purpose only.</strong> Under the FCRA you may only access a consumer's report with proper authorization. Always secure documented consent before pulling.</li>
+            <li><strong>Never promise score outcomes.</strong> "Your score will go up X points" is a compliance violation. Explain mechanics, not guarantees.</li>
+            <li><strong>Be accurate about negative marks.</strong> Settlements can be reported as "settled for less than full balance." Disclose honestly &mdash; per TSR/CFPB rules and basic ethics.</li>
+            <li><strong>Protect the data.</strong> Credit reports contain everything an identity thief needs. Follow your company's data handling policy without exception.</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <div class="section-divider"></div>
+
+    <!-- QUIZ -->
+    <section class="card p-6 md:p-8 mb-8">
+      <h2 class="text-3xl font-extrabold gradient-text mb-2">Knowledge Check</h2>
+      <p class="text-[var(--card-text)] mb-6">Answer all 5 correctly before running live reports. Click an answer to check it.</p>
+      <div id="quiz" class="space-y-8"></div>
+      <div id="quiz-result" class="mt-6 text-xl font-bold hidden"></div>
+    </section>
+
+    <!-- CTA -->
+    <section class="bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] rounded-lg p-8 text-white text-center shadow-lg">
+      <h2 class="text-2xl md:text-3xl font-bold mb-3">Want the Full Master Jedi Sales System?</h2>
+      <p class="text-lg mb-5">This module is one piece of the complete Debt Shop in a Box training program.</p>
+      <a href="/#contact" class="bg-[var(--accent)] text-blue-900 font-semibold py-3 px-6 rounded-lg inline-block hover:scale-105 transition-transform">Book a Free Consultation</a>
+    </section>
+  </main>
+
+  <footer class="header-bg text-white py-6 mt-10">
+    <div class="container max-w-5xl mx-auto px-4 text-center">
+      <p class="mb-1">&copy; 2026 Debt Shop in a Box. All rights reserved.</p>
+      <p class="text-sm text-gray-200">Training material for internal educational use. Not legal or financial advice.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+
+    const QUESTIONS = [
+      {
+        q: "What is the single biggest factor in a FICO score?",
+        options: ["Credit utilization", "Payment history", "Length of credit history", "Credit mix"],
+        answer: 1,
+        why: "Payment history is 35% of the score — more than any other factor."
+      },
+      {
+        q: "A client's card has a $5,000 limit and a $4,450 balance. What's the utilization, and is it a problem?",
+        options: ["89% — a major score drag", "45% — borderline", "11% — healthy", "Utilization doesn't affect scores"],
+        answer: 0,
+        why: "4,450 ÷ 5,000 = 89%. Anything over 30% hurts; near-maxed cards hurt badly even with on-time payments."
+      },
+      {
+        q: "How long does a Chapter 7 bankruptcy stay on a credit report?",
+        options: ["5 years", "7 years", "10 years", "Forever"],
+        answer: 2,
+        why: "Chapter 7 remains for 10 years from filing; Chapter 13 falls off after 7."
+      },
+      {
+        q: "A tradeline shows payment history: OK OK 30 OK 30 60. What's the trend?",
+        options: ["Client recovered and is fine", "Rolling delinquency — the client is sliding toward charge-off", "The account is closed", "This is a soft inquiry"],
+        answer: 1,
+        why: "Escalating lates (30 → 30 → 60) signal a client losing ground — 90 days and charge-off come next."
+      },
+      {
+        q: "Which of these can you legally tell a prospect?",
+        options: ["\"Your score will go up 120 points in 6 months\"", "\"We guarantee removal of your bankruptcy\"", "\"High utilization is one factor that may be suppressing your score\"", "\"This program has no effect on your credit\""],
+        answer: 2,
+        why: "Explain mechanics honestly. Guaranteed score changes or guaranteed deletions are compliance violations."
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+    let answered = 0, correct = 0;
+
+    QUESTIONS.forEach((item, qi) => {
+      const wrap = document.createElement('div');
+      const h = document.createElement('h3');
+      h.className = 'text-lg font-semibold text-[var(--card-heading)]';
+      h.textContent = (qi + 1) + '. ' + item.q;
+      wrap.appendChild(h);
+      const why = document.createElement('p');
+      why.className = 'mt-2 text-sm text-[var(--card-text)] hidden';
+      why.textContent = item.why;
+      item.options.forEach((opt, oi) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'quiz-option';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => {
+          if (wrap.dataset.done) return;
+          wrap.dataset.done = '1';
+          answered++;
+          if (oi === item.answer) { btn.classList.add('correct'); correct++; }
+          else {
+            btn.classList.add('wrong');
+            wrap.querySelectorAll('.quiz-option')[item.answer].classList.add('correct');
+          }
+          why.classList.remove('hidden');
+          if (answered === QUESTIONS.length) {
+            const res = document.getElementById('quiz-result');
+            res.classList.remove('hidden');
+            res.textContent = correct === QUESTIONS.length
+              ? '🏆 ' + correct + '/' + QUESTIONS.length + ' — Perfect. You\'re ready to run live reports.'
+              : correct + '/' + QUESTIONS.length + ' correct — review the modules above and refresh to retake.';
+            res.style.color = correct === QUESTIONS.length ? '#15803d' : '#b91c1c';
+          }
+        });
+        wrap.appendChild(btn);
+      });
+      wrap.appendChild(why);
+      quizEl.appendChild(wrap);
+    });
+  </script>
+</body>
+</html>
