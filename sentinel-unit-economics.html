@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="description" content="Sentinel unit economics: cost per analyzed audio hour, seeded from Relief One measured call duration.">
+<title>Sentinel Unit Economics</title>
+<style>
+  :root {
+    --ground: #eceff2;
+    --panel: #ffffff;
+    --panel-2: #f5f8f9;
+    --line: #d5dce1;
+    --line-soft: #e5ebee;
+    --ink: #121920;
+    --ink-2: #4a5761;
+    --ink-3: #74828c;
+    --accent: #1f6f8b;
+    --accent-2: #155469;
+    --accent-wash: rgba(31, 111, 139, 0.10);
+    --good: #2d7a4d;
+    --warn: #96620f;
+    --crit: #a33030;
+    --seg-asr: #1f6f8b;
+    --seg-llm: #4a9bb4;
+    --seg-store: #8fc0ce;
+    --seg-infra: #b9d6de;
+    --shadow: 0 1px 2px rgba(18, 25, 32, .05), 0 10px 30px -16px rgba(18, 25, 32, .28);
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1115;
+      --panel: #161d23;
+      --panel-2: #1c242b;
+      --line: #2a343d;
+      --line-soft: #212a32;
+      --ink: #e3e9ee;
+      --ink-2: #a2afb9;
+      --ink-3: #7a8791;
+      --accent: #6fb6ce;
+      --accent-2: #9ed3e5;
+      --accent-wash: rgba(111, 182, 206, 0.12);
+      --good: #5cba81;
+      --warn: #d4a251;
+      --crit: #e2736e;
+      --seg-asr: #6fb6ce;
+      --seg-llm: #4d8ba3;
+      --seg-store: #35657a;
+      --seg-infra: #274a5a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 12px 34px -18px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0d1115;
+    --panel: #161d23;
+    --panel-2: #1c242b;
+    --line: #2a343d;
+    --line-soft: #212a32;
+    --ink: #e3e9ee;
+    --ink-2: #a2afb9;
+    --ink-3: #7a8791;
+    --accent: #6fb6ce;
+    --accent-2: #9ed3e5;
+    --accent-wash: rgba(111, 182, 206, 0.12);
+    --good: #5cba81;
+    --warn: #d4a251;
+    --crit: #e2736e;
+    --seg-asr: #6fb6ce;
+    --seg-llm: #4d8ba3;
+    --seg-store: #35657a;
+    --seg-infra: #274a5a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 12px 34px -18px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 40px 22px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(30px, 4.4vw, 46px);
+    line-height: 1.06;
+    letter-spacing: -.025em;
+    font-weight: 700;
+    margin: 10px 0 0;
+    text-wrap: balance;
+  }
+
+  .deck {
+    margin: 12px 0 0;
+    max-width: 64ch;
+    color: var(--ink-2);
+    font-size: 17px;
+  }
+
+  h2 {
+    font-size: 13px;
+    font-family: var(--mono);
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  h3 {
+    font-size: 16px;
+    letter-spacing: -.01em;
+    margin: 0;
+    font-weight: 650;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---- verdict ---- */
+  .verdict { padding: 0; overflow: hidden; }
+
+  .readouts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .readout {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-right: 1px solid var(--line-soft);
+  }
+  .readout:last-child { border-right: 0; }
+
+  .readout .lbl {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .readout .val {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(28px, 4.2vw, 40px);
+    line-height: 1.05;
+    letter-spacing: -.03em;
+    font-weight: 600;
+  }
+
+  .readout .sub { font-size: 13px; color: var(--ink-3); }
+
+  .val.good { color: var(--good); }
+  .val.warn { color: var(--warn); }
+  .val.crit { color: var(--crit); }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid currentColor;
+    margin-top: 2px;
+  }
+  .pill.good { color: var(--good); }
+  .pill.warn { color: var(--warn); }
+  .pill.crit { color: var(--crit); }
+
+  /* ---- stack bar ---- */
+  .stackwrap { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+
+  .barhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .barhead .cap { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+  .bar {
+    display: flex;
+    height: 42px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+  }
+
+  .seg {
+    transition: width .28s cubic-bezier(.4, 0, .2, 1);
+    min-width: 0;
+  }
+  .seg.margin {
+    background: repeating-linear-gradient(135deg, var(--accent-wash), var(--accent-wash) 6px, transparent 6px, transparent 12px);
+    border-left: 1px solid var(--line);
+  }
+  .seg.over { background: var(--crit); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-size: 13px;
+  }
+
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+
+  .swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+
+  .legend .amt {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+
+  /* ---- controls ---- */
+  .grid2 {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 26px;
+    align-items: start;
+  }
+
+  .fieldset { display: flex; flex-direction: column; gap: 12px; }
+
+  .fieldset + .fieldset { padding-top: 18px; border-top: 1px solid var(--line-soft); }
+
+  .field {
+    display: grid;
+    grid-template-columns: 1fr 108px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .field label { font-size: 14px; color: var(--ink-2); }
+  .field .hint { display: block; font-size: 12px; color: var(--ink-3); }
+
+  input[type="number"], select {
+    width: 100%;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 7px 8px;
+    text-align: right;
+  }
+
+  select { text-align: left; grid-column: 1 / -1; }
+
+  input[type="number"]:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .checkrow { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; color: var(--ink-2); }
+  .checkrow input { margin-top: 4px; accent-color: var(--accent); }
+
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .presets button {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 6px 11px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .presets button:hover { border-color: var(--accent); color: var(--accent); }
+  .presets button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+
+  /* ---- table ---- */
+  .tablewrap { overflow-x: auto; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 540px; }
+
+  th, td { text-align: right; padding: 10px 12px; border-bottom: 1px solid var(--line-soft); }
+
+  th:first-child, td:first-child { text-align: left; }
+
+  thead th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    border-bottom: 1px solid var(--line);
+  }
+
+  tbody td { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  tbody td:first-child { font-family: var(--sans); color: var(--ink); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr.is-current td { background: var(--accent-wash); }
+  tbody tr.is-current td:first-child::after {
+    content: "current";
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-left: 8px;
+  }
+
+  .m-good { color: var(--good); }
+  .m-warn { color: var(--warn); }
+  .m-crit { color: var(--crit); }
+
+  /* ---- notes ---- */
+  .notes { font-size: 14.5px; color: var(--ink-2); }
+  .notes p { margin: 0 0 12px; max-width: 68ch; }
+  .notes p:last-child { margin-bottom: 0; }
+  .notes strong { color: var(--ink); font-weight: 650; }
+  .notes code {
+    font-family: var(--mono);
+    font-size: .9em;
+    background: var(--panel-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+
+  .measured { border-left: 3px solid var(--accent); }
+
+  .mgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 18px;
+  }
+
+  .mstat { display: flex; flex-direction: column; gap: 2px; }
+
+  .mstat .mval {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 24px;
+    letter-spacing: -.02em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .mstat .mlbl { font-size: 12.5px; color: var(--ink-3); line-height: 1.35; }
+
+  .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  footer {
+    font-size: 13px;
+    color: var(--ink-3);
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+
+  @media (max-width: 860px) {
+    .grid2 { grid-template-columns: 1fr; }
+    .readouts { grid-template-columns: 1fr; }
+    .readout { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+    .readout:last-child { border-bottom: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Sentinel · Unit economics</p>
+    <h1>What one analyzed audio hour actually costs</h1>
+    <p class="deck">
+      At $2,500/month for 10 seats, the revenue ceiling per analyzed audio hour is fixed by volume alone.
+      Everything below that line is transcription, model tokens, storage, and infrastructure. Defaults are
+      seeded from Relief One's measured MightyCall talk time, not a worst-case guess.
+    </p>
+  </header>
+
+  <section class="panel measured">
+    <h2>Measured baseline · Relief One, August 2026</h2>
+    <div class="mgrid">
+      <div class="mstat"><span class="mval">28:21:33</span><span class="mlbl">Inbound talk time, Aug 1–4</span></div>
+      <div class="mstat"><span class="mval">14.2</span><span class="mlbl">Audio hours / workday</span></div>
+      <div class="mstat"><span class="mval">8</span><span class="mlbl">Closers with activity</span></div>
+      <div class="mstat"><span class="mval">1.8</span><span class="mlbl">Talk hours / rep / day</span></div>
+    </div>
+    <p style="margin:0;color:var(--ink-2);font-size:14.5px;max-width:66ch;">
+      Source: <em>Relief One — August 2026 Call Duration</em>, aggregate MightyCall feed. 160 inbound calls
+      produced 28h 21m of talk time across two workdays. That is <strong>1.8 talk-hours per rep per
+      day</strong> — roughly a quarter of the 7-hour worst case. Closer inbound only; outbound and opener
+      audio sit on top, which is what the 4h preset is for.
+    </p>
+  </section>
+
+  <section class="panel verdict" aria-label="Headline results">
+    <div class="readouts">
+      <div class="readout">
+        <span class="lbl">Cost / analyzed hour</span>
+        <span class="val" id="r-cost">$0.00</span>
+        <span class="sub" id="r-cost-sub">variable + allocated fixed</span>
+      </div>
+      <div class="readout">
+        <span class="lbl">Gross margin</span>
+        <span class="val" id="r-margin">0%</span>
+        <span class="pill" id="r-pill">—</span>
+      </div>
+      <div class="readout">
+        <span class="lbl">Revenue ceiling / hour</span>
+        <span class="val" id="r-ceiling">$0.00</span>
+        <span class="sub" id="r-ceiling-sub">price ÷ audio hours</span>
+      </div>
+    </div>
+
+    <div class="stackwrap">
+      <div class="barhead">
+        <span class="cap">Where the $2,500 goes</span>
+        <span class="cap" id="bar-total">—</span>
+      </div>
+      <div class="bar" id="bar" role="img" aria-label="Monthly cost stack against revenue"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <div class="grid2">
+
+    <form class="panel" id="controls" aria-label="Assumptions">
+      <h2>Assumptions</h2>
+
+      <div class="fieldset">
+        <h3>Volume</h3>
+        <div class="presets" role="group" aria-label="Talk-hour presets">
+          <button type="button" data-hours="1.8">Measured 1.8h</button>
+          <button type="button" data-hours="4">+ outbound 4h</button>
+          <button type="button" data-hours="7">Worst case 7h</button>
+        </div>
+        <div class="field">
+          <label for="reps">Reps (seats)</label>
+          <input type="number" id="reps" value="10" min="1" step="1">
+        </div>
+        <div class="field">
+          <label for="hrs">Talk hours / rep / day <span class="hint">Relief One measures 1.8</span></label>
+          <input type="number" id="hrs" value="1.8" min="0.1" step="0.1">
+        </div>
+        <div class="field">
+          <label for="days">Workdays / month</label>
+          <input type="number" id="days" value="22" min="1" step="1">
+        </div>
+        <div class="field">
+          <label for="price">Price / month <span class="hint">USD, per 10-seat client</span></label>
+          <input type="number" id="price" value="2500" min="0" step="50">
+        </div>
+      </div>
+
+      <div class="fieldset">
+        <h3>Transcription</h3>
+        <div class="field">
+          <label for="asr">ASR $ / audio hour <span class="hint">diarized, batch, at volume</span></label>
+          <input type="number" id="asr" value="0.30" min="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="fieldset">
+        <h3>Model analysis</h3>
+        <select id="model" aria-label="Model">
+          <option value="haiku">Haiku 4.5 — $1 / $5 per MTok</option>
+          <option value="sonnetIntro" selected>Sonnet 5 intro — $2 / $10 per MTok</option>
+          <option value="sonnet">Sonnet 5 standard — $3 / $15 per MTok</option>
+          <option value="opus">Opus 5 — $5 / $25 per MTok</option>
+        </select>
+        <div class="field">
+          <label for="ttok">Transcript tokens / audio hour</label>
+          <input type="number" id="ttok" value="12000" min="0" step="500">
+        </div>
+        <div class="field">
+          <label for="stok">Rubric + system tokens / pass</label>
+          <input type="number" id="stok" value="2000" min="0" step="250">
+        </div>
+        <div class="field">
+          <label for="otok">Output tokens / pass</label>
+          <input type="number" id="otok" value="1500" min="0" step="250">
+        </div>
+        <div class="field">
+          <label for="passes">Analysis passes / call <span class="hint">score, objections, coaching…</span></label>
+          <input type="number" id="passes" value="1" min="1" step="1">
+        </div>
+        <label class="checkrow"><input type="checkbox" id="batch"> Batch API (−50% on all tokens; results within 24h)</label>
+        <label class="checkrow"><input type="checkbox" id="cache" checked> Prompt caching across passes (writes 1.25×, reads 0.1×)</label>
+      </div>
+
+      <div class="fieldset">
+        <h3>Storage &amp; overhead</h3>
+        <div class="field">
+          <label for="mb">MB / audio hour <span class="hint">Opus 24 kbps ≈ 11 MB</span></label>
+          <input type="number" id="mb" value="11" min="0" step="1">
+        </div>
+        <div class="field">
+          <label for="gb">$ / GB-month</label>
+          <input type="number" id="gb" value="0.023" min="0" step="0.001">
+        </div>
+        <div class="field">
+          <label for="ret">Retention (months)</label>
+          <input type="number" id="ret" value="12" min="1" step="1">
+        </div>
+        <div class="field">
+          <label for="infra">Infra / client / month <span class="hint">queue, DB, app, integrations</span></label>
+          <input type="number" id="infra" value="40" min="0" step="5">
+        </div>
+      </div>
+    </form>
+
+    <div style="display:flex;flex-direction:column;gap:26px;min-width:0;">
+
+      <section class="panel">
+        <h2>Model choice at this volume</h2>
+        <p style="margin:0;color:var(--ink-2);font-size:14.5px;max-width:64ch;">
+          Same transcription, storage, and infra in every row — only the analysis model changes. Batch and
+          caching follow the switches on the left.
+        </p>
+        <div class="tablewrap">
+          <table id="scenarios">
+            <thead>
+              <tr>
+                <th scope="col">Analysis model</th>
+                <th scope="col">Model $/hr</th>
+                <th scope="col">All-in $/hr</th>
+                <th scope="col">Monthly cost</th>
+                <th scope="col">Gross margin</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Reading the number</h2>
+        <div class="notes" id="notes"></div>
+      </section>
+
+      <section class="panel">
+        <h2>What would actually break this</h2>
+        <div class="notes">
+          <p>
+            <strong>Re-analysis loops.</strong> A single pass over a transcript is cheap. An agent that
+            re-reads the full transcript on every tool call multiplies the input tokens by the number of
+            turns, and that is the one line item here that can silently grow 10×. Cap it with a fixed
+            pass count and prompt caching, not with hope.
+          </p>
+          <p>
+            <strong>Streaming instead of batch.</strong> Real-time ASR runs roughly 30–50% above
+            pre-recorded rates, and the Batch API's 50% discount is off the table if analysis has to be
+            live. Live coaching during the call is a different product with a different floor — price it
+            separately.
+          </p>
+          <p>
+            <strong>Per-minute telephony.</strong> Nothing above includes carrier or platform minutes. If
+            Sentinel records through your own voice stack rather than ingesting the dialer's audio, add
+            that rate per audio hour before comparing to the ceiling — it is typically larger than
+            transcription and model cost combined.
+          </p>
+          <p>
+            <strong>Seat drift.</strong> The ceiling is <code>price ÷ hours</code>. A client who adds
+            reps without a price change moves the ceiling down proportionally. Tie the contract to seats
+            or to an audio-hour band, not to a flat number.
+          </p>
+          <p>
+            <strong>The lever you already have.</strong> Relief One's own data shows 95 of 160 inbound
+            calls run over three minutes — the other 65 are wrong numbers, hangups, and misroutes carrying
+            almost no talk time and no gradeable content. A duration floor before transcription costs you
+            nothing in coverage and trims the ASR bill. It is a smaller saving than it looks (short calls
+            are short) but it is free.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    Model rates are Anthropic list prices per million tokens; Sonnet 5 introductory pricing runs through
+    31 Aug 2026. Transcription, storage, and infrastructure figures are market-rate placeholders — replace
+    them with your contracted rates for a binding number.
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var PRICES = {
+      haiku: { name: "Haiku 4.5", in: 1, out: 5 },
+      sonnetIntro: { name: "Sonnet 5 (intro)", in: 2, out: 10 },
+      sonnet: { name: "Sonnet 5 (standard)", in: 3, out: 15 },
+      opus: { name: "Opus 5", in: 5, out: 25 }
+    };
+
+    var $ = function (id) { return document.getElementById(id); };
+    var num = function (id) { var v = parseFloat($(id).value); return isFinite(v) ? v : 0; };
+
+    function fmt(n, dp) {
+      return "$" + n.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+    }
+    function pct(n) { return (n * 100).toFixed(1) + "%"; }
+
+    function llmPerHour(key, s) {
+      var p = PRICES[key];
+      var unit = s.ttok + s.stok;
+      // Caching only pays for itself across passes: a single pass would never
+      // be cached, so it must not carry the 1.25x write premium.
+      var inTok = (s.cache && s.passes > 1)
+        ? unit * 1.25 + unit * 0.1 * (s.passes - 1)
+        : unit * s.passes;
+      var outTok = s.otok * s.passes;
+      var cost = (inTok / 1e6) * p.in + (outTok / 1e6) * p.out;
+      return s.batch ? cost * 0.5 : cost;
+    }
+
+    function read() {
+      return {
+        reps: num("reps"), hrs: num("hrs"), days: num("days"), price: num("price"),
+        asr: num("asr"), ttok: num("ttok"), stok: num("stok"), otok: num("otok"),
+        passes: Math.max(1, num("passes")),
+        batch: $("batch").checked, cache: $("cache").checked,
+        mb: num("mb"), gb: num("gb"), ret: num("ret"), infra: num("infra"),
+        model: $("model").value
+      };
+    }
+
+    function model(s, key) {
+      var hours = s.reps * s.hrs * s.days;
+      var asr = hours * s.asr;
+      var llm = hours * llmPerHour(key, s);
+      var storage = (hours * s.mb / 1024) * s.ret * s.gb;
+      var infra = s.infra;
+      var total = asr + llm + storage + infra;
+      return {
+        hours: hours, asr: asr, llm: llm, storage: storage, infra: infra, total: total,
+        perHour: hours ? total / hours : 0,
+        llmPerHour: llmPerHour(key, s),
+        ceiling: hours ? s.price / hours : 0,
+        margin: s.price ? (s.price - total) / s.price : 0
+      };
+    }
+
+    function tone(m) { return m >= 0.7 ? "good" : m >= 0.45 ? "warn" : "crit"; }
+    function toneWord(m) {
+      return m >= 0.8 ? "Healthy SaaS margin"
+        : m >= 0.7 ? "Comfortable"
+        : m >= 0.45 ? "Thin — watch scope creep"
+        : m >= 0 ? "Below viable" : "Losing money";
+    }
+
+    function render() {
+      var s = read();
+      var r = model(s, s.model);
+
+      $("r-cost").textContent = fmt(r.perHour, 2);
+      $("r-cost-sub").textContent = r.hours.toLocaleString("en-US") + " audio hours / month";
+
+      var mEl = $("r-margin");
+      mEl.textContent = pct(r.margin);
+      mEl.className = "val " + tone(r.margin);
+
+      var pill = $("r-pill");
+      pill.textContent = toneWord(r.margin);
+      pill.className = "pill " + tone(r.margin);
+
+      $("r-ceiling").textContent = fmt(r.ceiling, 2);
+      $("r-ceiling-sub").textContent = fmt(r.ceiling - r.perHour, 2) + " of headroom per hour";
+
+      // stack bar
+      var base = Math.max(s.price, r.total);
+      var segs = [
+        { k: "Transcription", v: r.asr, c: "var(--seg-asr)" },
+        { k: "Model analysis", v: r.llm, c: "var(--seg-llm)" },
+        { k: "Storage", v: r.storage, c: "var(--seg-store)" },
+        { k: "Infrastructure", v: r.infra, c: "var(--seg-infra)" }
+      ];
+      var bar = $("bar");
+      bar.innerHTML = "";
+      segs.forEach(function (g) {
+        var d = document.createElement("div");
+        d.className = "seg";
+        d.style.width = (base ? (g.v / base) * 100 : 0) + "%";
+        d.style.background = g.c;
+        d.title = g.k + " — " + fmt(g.v, 2);
+        bar.appendChild(d);
+      });
+      var rest = document.createElement("div");
+      if (r.total > s.price) {
+        rest.className = "seg over";
+        rest.style.width = "0%";
+      } else {
+        rest.className = "seg margin";
+        rest.style.width = (base ? ((s.price - r.total) / base) * 100 : 0) + "%";
+        rest.title = "Gross margin — " + fmt(s.price - r.total, 2);
+      }
+      bar.appendChild(rest);
+
+      $("bar-total").textContent = fmt(r.total, 0) + " cost · " + fmt(Math.max(0, s.price - r.total), 0) + " margin";
+
+      var legend = $("legend");
+      legend.innerHTML = "";
+      segs.concat([{ k: "Gross margin", v: s.price - r.total, c: "var(--accent)" }]).forEach(function (g) {
+        var item = document.createElement("span");
+        item.className = "item";
+        var sw = document.createElement("span");
+        sw.className = "swatch";
+        sw.style.background = g.c;
+        var t = document.createElement("span");
+        t.textContent = g.k + " ";
+        var a = document.createElement("span");
+        a.className = "amt";
+        a.textContent = fmt(g.v, 2);
+        item.appendChild(sw); item.appendChild(t); item.appendChild(a);
+        legend.appendChild(item);
+      });
+
+      // scenario table
+      var tb = document.querySelector("#scenarios tbody");
+      tb.innerHTML = "";
+      Object.keys(PRICES).forEach(function (key) {
+        var q = model(s, key);
+        var tr = document.createElement("tr");
+        if (key === s.model) tr.className = "is-current";
+        var cells = [
+          PRICES[key].name,
+          fmt(q.llmPerHour, 3),
+          fmt(q.perHour, 2),
+          fmt(q.total, 0),
+          pct(q.margin)
+        ];
+        cells.forEach(function (c, i) {
+          var td = document.createElement("td");
+          td.textContent = c;
+          if (i === 4) td.className = "m-" + tone(q.margin);
+          tr.appendChild(td);
+        });
+        tb.appendChild(tr);
+      });
+
+      // notes
+      var big = segs.slice().sort(function (a, b) { return b.v - a.v; })[0];
+      var asrShare = r.total ? r.asr / r.total : 0;
+      $("notes").innerHTML =
+        "<p>At <strong>" + r.hours.toLocaleString("en-US") + " audio hours</strong> a month, " + fmt(s.price, 0) +
+        " buys you <strong>" + fmt(r.ceiling, 2) + " per hour</strong> to work with. You are spending " +
+        fmt(r.perHour, 2) + ", leaving " + fmt(r.ceiling - r.perHour, 2) + " of headroom per hour and a " +
+        pct(r.margin) + " gross margin.</p>" +
+        "<p>The dominant line is <strong>" + big.k.toLowerCase() + "</strong> at " + fmt(big.v, 0) +
+        " a month" + (asrShare > 0.5 ? " — transcription, not the model, is your cost center. Negotiating a rate card or moving to a self-hosted ASR node moves the floor further than swapping models does." : ". Model tokens are a rounding error next to transcription; do not optimize them first.") + "</p>" +
+        "<p>Because " + fmt(s.infra, 0) + " of infrastructure is fixed per client, the cost <em>per hour</em> rises " +
+        "as volume falls even though total margin improves. Low-volume clients are more profitable and less " +
+        "efficient at the same time — that is normal, and it is why per-seat pricing beats per-hour pricing here.</p>";
+    }
+
+    var presets = document.querySelectorAll(".presets button");
+    function syncPresets() {
+      var h = num("hrs");
+      presets.forEach(function (b) {
+        b.setAttribute("aria-pressed", String(parseFloat(b.dataset.hours) === h));
+      });
+    }
+    presets.forEach(function (b) {
+      b.addEventListener("click", function () {
+        $("hrs").value = b.dataset.hours;
+        syncPresets();
+        render();
+      });
+    });
+
+    $("controls").addEventListener("input", function () { syncPresets(); render(); });
+    $("controls").addEventListener("submit", function (e) { e.preventDefault(); });
+
+    syncPresets();
+    render();
+  })();
+</script>
+</body>
+</html>
