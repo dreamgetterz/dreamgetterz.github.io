@@ -1,8 +1,9 @@
 
-/* Ericka's tracker: pure, tested calendar and bookkeeping functions. No treatment advice. */
+/* Ericka's tracker: calendar and bookkeeping functions. No treatment advice. */
 (function(root){
 'use strict';
 const KEY='jedi-ericka-health-v1', DAY=86400000;
+let bootstrapFailure=null;
 const copy=x=>JSON.parse(JSON.stringify(x,(k,v)=>{if(typeof v==='number'&&!Number.isFinite(v))throw Error('Non-finite numbers are not valid records.');return v;}));
 const round=(n,p=1)=>Math.round((n+Number.EPSILON)*10**p)/10**p;
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
@@ -24,9 +25,35 @@ function num(v,label,min=0,max=100000,nullable=false){
 function str(v,label,max=160,optional=false){if(v==null&&optional)return '';if(typeof v!=='string'||(!optional&&!v.trim())||v.length>max)throw Error(`${label} is invalid.`);return v.trim();}
 function date(v,end=today()){ord(v);if(v>end)throw Error('Future dates cannot be logged as completed.');return v;}
 function id(v){if(typeof v!=='string'||!/^[-\w]{1,90}$/.test(v))throw Error('Invalid entry identifier.');return v;}
-function defaults(){return {schema:1,owner:'ericka',revision:0,profile:{name:'Ericka',startWeight:155,startDate:'2026-09-10',goalWeight:130,targetDays:143,targetDate:'2027-01-31',planRevision:2,calorieTarget:null,proteinTarget:null},weights:[{date:'2026-09-10',weight:155},{date:'2026-09-19',weight:147}],foods:[],medications:[],doses:[],checkins:[]};}
+// Explicitly confirmed September 19: 2.5 mg on Thursdays; September 10 and 17 taken.
+// One-time migration, never a rolling automatic dose log or an automatic dose increase.
+function applyConfirmedSchedule(s){
+ if(s.profile.tirzepatideLogRevision===1)return s;
+ const matches=s.medications.filter(m=>/tirzepatide|trizepatide/.test(m.name.toLowerCase())||['zepbound','mounjaro'].includes(m.name.toLowerCase().trim()));
+ if(matches.length>1)throw Error('More than one tirzepatide schedule exists. Resolve the duplicate before applying the confirmed schedule.');
+ let med=matches[0];
+ if(!med){
+  const medId='ericka-tirzepatide-20260910';
+  if(s.medications.some(m=>m.id===medId))throw Error('Medication identifier conflict; saved records were not changed.');
+  med={id:medId};s.medications.push(med);
+ }
+ Object.assign(med,{name:'Tirzepatide',amount:2.5,unit:'mg',startDate:'2026-09-10',days:[4],active:true});
+ for(const day of ['2026-09-10','2026-09-17']){
+  let row=s.doses.find(d=>d.medId===med.id&&d.scheduledDate===day);
+  if(!row){
+   const doseId='ericka-tirzepatide-taken-'+day;
+   if(s.doses.some(d=>d.id===doseId))throw Error('Dose identifier conflict; saved records were not changed.');
+   row={id:doseId};s.doses.push(row);
+  }
+  Object.assign(row,{medId:med.id,scheduledDate:day,actualDate:day,status:'taken',name:'Tirzepatide',amount:2.5,unit:'mg'});
+ }
+ s.profile.tirzepatideLogRevision=1;
+ return s;
+}
+function defaults(){return applyConfirmedSchedule({schema:1,owner:'ericka',revision:0,profile:{name:'Ericka',startWeight:155,startDate:'2026-09-10',goalWeight:130,targetDays:143,targetDate:'2027-01-31',planRevision:2,calorieTarget:null,proteinTarget:null},weights:[{date:'2026-09-10',weight:155},{date:'2026-09-19',weight:147}],foods:[],medications:[],doses:[],checkins:[]});}
 const NUTRIENTS=['calories','protein','carbs','fat'];
 function validate(raw,end=today()){
+ if(bootstrapFailure)throw Error('The confirmed schedule update could not be saved. Existing data is unchanged; reload after browser storage is available.');
  if(!raw||raw.schema!==1||raw.owner!=='ericka')throw Error('Choose an Ericka tracker backup. Other profiles are not imported.');
  const s=copy(raw),p=s.profile;if(!p||p.name!=='Ericka')throw Error('This backup does not belong to Ericka.');
  p.startWeight=round(num(p.startWeight,'Starting weight',0.1,1500));p.startDate=date(p.startDate,end);
@@ -66,6 +93,10 @@ function validate(raw,end=today()){
  s.checkins=s.checkins.map(c=>{date(c.date,end);if(!['Low','Okay','Good'].includes(c.feeling))throw Error('Invalid check-in.');return {date:c.date,feeling:c.feeling};});unique('date',s.checkins);
  s.revision=Number.isSafeInteger(s.revision)&&s.revision>=0?s.revision:0;
  return s;
+}
+function migrateConfirmedSchedule(raw,end=today()){
+ const s=validate(raw,end);
+ return validate(applyConfirmedSchedule(s),end);
 }
 function metrics(s,end=today()){
  const p=s.profile,pts=[...s.weights].sort((a,b)=>a.date.localeCompare(b.date)),last=pts.at(-1),current=last?.weight??p.startWeight;
@@ -110,6 +141,21 @@ function upsertDose(s,d,end=today()){
  const row={...d,...(old?{name:old.name,amount:old.amount,unit:old.unit}:{name:med.name,amount:med.amount,unit:med.unit})};
  s.doses=s.doses.filter(x=>x.id!==d.id);s.doses.push(row);
 }
-const api={KEY,DAY,copy,round,clamp,today,ord,addDays,weekday,fmt,num,str,date,defaults,validate,metrics,foodTotals,totalLabel,upsertWeight,dueDate,nextDate,upsertDose,NUTRIENTS};
+const api={KEY,DAY,copy,round,clamp,today,ord,addDays,weekday,fmt,num,str,date,defaults,validate,metrics,foodTotals,totalLabel,upsertWeight,dueDate,nextDate,upsertDose,NUTRIENTS,migrateConfirmedSchedule};
 root.ErickaCore=api;if(typeof module!=='undefined'&&module.exports)module.exports=api;
+// Upgrade the existing browser record before the UI reads it. The key never changes.
+// A single validated write preserves other history; failed writes never replace old data.
+if(typeof window!=='undefined'){
+ try{
+  const raw=window.localStorage.getItem(KEY);
+  if(raw!==null){
+   const before=JSON.parse(raw);
+   if(before.profile?.tirzepatideLogRevision!==1){
+    const after=migrateConfirmedSchedule(before);
+    after.revision+=1;
+    window.localStorage.setItem(KEY,JSON.stringify(after));
+   }
+  }
+ }catch(e){bootstrapFailure=e;}
+}
 })(typeof window!=='undefined'?window:globalThis);
