@@ -740,7 +740,61 @@
         <span id="goalPathToday">Today 166.8</span>
         <span>Goal 130</span>
       </div>
-      <div class="tiny" id="pathSummary" style="margin-top:12px;font-weight:800;color:var(--purple-dark)">Goal: 130 lb in 150 days.</div>
+      <div class="endgame-card">
+        <div class="endgame-header">
+          <div><div class="label">End game line</div><h2 style="margin-top:4px">Finish at 130 lb</h2></div>
+          <span class="pill">180-day target</span>
+        </div>
+        <div class="endgame-rail">
+          <div class="endgame-fill" id="endgameFill"></div>
+          <div class="endgame-current" id="endgameCurrent" style="left:7.3%"></div>
+          <div class="endgame-finish"></div>
+          <div class="endgame-flag">🏁</div>
+        </div>
+        <div class="endgame-notes">
+          <div>
+            <div class="endgame-big">130 <small>lb target goal</small></div>
+            <div class="tiny" id="endgameRemain">36.8 lb to go</div>
+          </div>
+          <div class="endgame-date">
+            <div class="d1">Target date</div>
+            <div class="d2" id="endgameDate">--</div>
+          </div>
+        </div>
+      </div>
+      <div class="tiny" id="pathSummary" style="margin-top:12px;font-weight:800;color:var(--purple-dark)">Goal: 130 lb in 180 days.</div>
+
+      <div class="pace-grid">
+        <div class="pace-card">
+          <div class="label">Projected finish pace</div>
+          <div class="pace-number" id="projectedFinishDate">--</div>
+          <div class="tiny" id="projectedFinishCopy">Based on your current average pace.</div>
+          <div class="pace-status ahead" id="paceStatus">✨ Calculating pace</div>
+        </div>
+        <div class="pace-card">
+          <div class="label">Average pace</div>
+          <div class="pace-number"><span id="actualWeeklyPace">0.0</span> <small>lb/week</small></div>
+          <div class="tiny">Goal pace needed: <strong id="requiredWeeklyPace">0.0 lb/week</strong></div>
+          <div class="tiny" style="margin-top:7px">Weight loss rarely moves in a straight line — use this as a trend, not a promise.</div>
+        </div>
+      </div>
+
+      <div class="milestone-card">
+        <div class="row">
+          <div><div class="label">Milestone ladder</div><h2 style="margin-top:4px">170 → 155 → 140 → 130</h2></div>
+          <span class="pill">Visual wins</span>
+        </div>
+        <div class="milestone-ladder">
+          <div class="milestone-line"></div>
+          <div class="milestone-line-fill" id="milestoneLineFill"></div>
+          <div class="milestone-nodes">
+            <div class="milestone-node done" id="mile170"><div class="milestone-dot">✓</div><div class="milestone-weight">170</div><div class="milestone-copy">Start</div></div>
+            <div class="milestone-node" id="mile155"><div class="milestone-dot">2</div><div class="milestone-weight">155</div><div class="milestone-copy">Next win</div></div>
+            <div class="milestone-node" id="mile140"><div class="milestone-dot">3</div><div class="milestone-weight">140</div><div class="milestone-copy">Major milestone</div></div>
+            <div class="milestone-node goal" id="mile130"><div class="milestone-dot">🏁</div><div class="milestone-weight">130</div><div class="milestone-copy">Goal</div></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="card section">
@@ -810,7 +864,7 @@
 </div>
 
 <script>
-const SKEY='rita-health-v3';
+const SKEY='rita-health-v4';
 const defaultState = {
   startWeight:169.7,
   currentWeight:166.8,
