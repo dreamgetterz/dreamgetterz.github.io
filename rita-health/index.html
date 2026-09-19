@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Rita's Health & Weight Journey</title>
+<meta name="theme-color" content="#f7cf3d" />
+<style>
+  :root{
+    --bg1:#fff4a8;
+    --bg2:#ffe980;
+    --bg3:#fff7cf;
+    --card:#fff4b7;
+    --card2:#fff9dc;
+    --ink:#33263a;
+    --muted:#7b6e74;
+    --purple:#8b5cf6;
+    --purple-dark:#6d28d9;
+    --pink:#ec4899;
+    --pink-soft:#f9c3df;
+    --yellow:#facc15;
+    --yellow-deep:#f4b400;
+    --yellow-soft:#fff0a6;
+    --line:rgba(150,120,40,.20);
+    --shadow:0 20px 40px rgba(118, 76, 18, .12);
+    --shadow-soft:0 12px 24px rgba(118, 76, 18, .09);
+    --radius:24px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    color:var(--ink);
+    font:16px/1.45 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(250,204,21,.50), transparent 25%),
+      radial-gradient(circle at 100% 5%, rgba(236,72,153,.18), transparent 22%),
+      radial-gradient(circle at 80% 100%, rgba(139,92,246,.14), transparent 26%),
+      linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 42%, var(--bg3) 100%);
+  }
+  .wrap{
+    max-width:820px;
+    margin:0 auto;
+    padding:18px 16px 104px;
+  }
+  .screen{display:none}
+  .screen.active{display:block}
+  .card{
+    background:linear-gradient(180deg, rgba(255,249,220,.98), rgba(255,244,183,.98));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+  .section{margin-top:14px}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .label{
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    font-weight:800;
+    color:#8b6f1a;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 12px; border-radius:999px;
+    font-size:12px; font-weight:800;
+    background:rgba(255,255,255,.60);
+    border:1px solid rgba(139,92,246,.16);
+    color:#6d28d9;
+    box-shadow:var(--shadow-soft);
+  }
+  .metric{
+    font-size:42px;
+    line-height:1;
+    letter-spacing:-.04em;
+    font-weight:900;
+  }
+  .metric small{font-size:16px;color:var(--muted);font-weight:800}
+  .tiny{font-size:12px;color:var(--muted)}
+  h1,h2,h3,p{margin:0}
+  h2{font-size:20px}
+  button{
+    border:0; cursor:pointer; font:inherit; font-weight:800;
+    border-radius:16px; padding:13px 16px;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  button:hover{transform:translateY(-1px)}
+  .primary{
+    background:linear-gradient(90deg,var(--purple-dark),var(--pink));
+    color:#fff; box-shadow:0 14px 28px rgba(139,92,246,.24);
+  }
+  .secondary{
+    background:rgba(255,255,255,.65);
+    border:1px solid rgba(139,92,246,.14);
+    color:var(--ink);
+    box-shadow:var(--shadow-soft);
+  }
+  .yellow{
+    background:linear-gradient(90deg,#ffe56c,#facc15);
+    color:#5e4700;
+    box-shadow:0 12px 22px rgba(244,180,0,.18);
+  }
+  .full{width:100%}
+  .hero{
+    position:relative;
+    overflow:hidden;
+    padding:24px 22px 22px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,.55), transparent 22%),
+      linear-gradient(135deg, rgba(255,232,120,.96), rgba(255,241,177,.94) 40%, rgba(255,223,156,.92) 100%);
+  }
+
+  .logo-lockup{display:flex;align-items:center;gap:12px;position:relative;z-index:2}
+  .logo-name{font-size:29px;line-height:1;font-weight:950;letter-spacing:-.03em;color:var(--purple-dark)}
+  .butterfly-mark{width:48px;height:40px;position:relative;filter:drop-shadow(0 7px 10px rgba(139,92,246,.18))}
+  .butterfly-mark .wing{position:absolute;top:4px;width:22px;height:28px;background:linear-gradient(145deg,#ec4899,#8b5cf6 62%,#facc15);border-radius:70% 40% 65% 35%}
+  .butterfly-mark .left{left:2px;transform:rotate(-24deg)}
+  .butterfly-mark .right{right:2px;transform:scaleX(-1) rotate(-24deg)}
+  .butterfly-mark .body{position:absolute;left:22px;top:8px;width:5px;height:26px;border-radius:99px;background:#6d28d9;z-index:2}
+  .journey-path-card{
+    margin-top:14px;border-radius:22px;padding:16px 14px 14px;
+    background:linear-gradient(135deg,rgba(255,255,255,.52),rgba(255,230,109,.44));
+    border:1px solid rgba(244,180,0,.17);box-shadow:var(--shadow-soft);
+  }
+  .journey-path-wrap{position:relative;padding:42px 16px 34px;margin-top:4px}
+  .journey-track{
+    position:relative;height:12px;border-radius:999px;
+    background:linear-gradient(90deg,#8b5cf6 0%,#ec4899 55%,#facc15 100%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 6px 14px rgba(139,92,246,.12);
+  }
+  .journey-marker{
+    position:absolute;top:50%;transform:translate(-50%,-50%);
+    width:22px;height:22px;border-radius:50%;
+    background:#fff;border:5px solid var(--purple);
+    box-shadow:0 4px 12px rgba(51,38,58,.18);z-index:2;
+  }
+  .journey-marker.current{
+    border-color:var(--pink);width:28px;height:28px;
+    box-shadow:0 0 0 6px rgba(236,72,153,.14),0 6px 14px rgba(51,38,58,.18);
+  }
+  .journey-marker.goal{border-color:var(--yellow-deep)}
+  .journey-label{
+    position:absolute;transform:translateX(-50%);text-align:center;min-width:92px;
+  }
+  .journey-label.top{bottom:22px}
+  .journey-label.bottom{top:22px}
+  .journey-label .name{
+    display:block;font-size:10px;font-weight:900;letter-spacing:.10em;
+    text-transform:uppercase;color:#8b6f1a;
+  }
+  .journey-label .value{
+    display:block;font-size:18px;font-weight:950;color:var(--ink);letter-spacing:-.02em;
+  }
+  .journey-caption{
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+    margin-top:2px;font-size:11px;color:var(--muted);font-weight:700;
+  }
+  .banner-kicker{
+    display:inline-flex;align-items:center;gap:7px;margin-top:12px;
+    padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.50);
+    border:1px solid rgba(244,180,0,.18);font-size:12px;font-weight:900;color:#8b6f1a
+  }
+  .hero h1{
+    margin-top:6px;
+    font-size:34px;
+    line-height:1.02;
+    max-width:520px;
+  }
+  .hero .sub{
+    margin-top:8px;
+    max-width:520px;
+    color:#6d5b63;
+    font-size:15px;
+  }
+  .brand{margin-top:8px;color:var(--purple-dark);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .hero .butterfly{
+    position:absolute;
+    opacity:.9;
+    filter:drop-shadow(0 8px 14px rgba(139,92,246,.12));
+    pointer-events:none;
+  }
+  .b1{top:12px; right:22px; font-size:38px; transform:rotate(12deg)}
+  .b2{top:84px; right:86px; font-size:24px; transform:rotate(-10deg)}
+  .b3{bottom:18px; right:18px; font-size:28px; transform:rotate(15deg)}
+  .b4{bottom:28px; left:18px; font-size:20px; transform:rotate(-18deg); opacity:.68}
+  .journey-visual{
+    margin-top:18px;
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:14px;
+    align-items:stretch;
+  }
+  .transform-card{
+    background:linear-gradient(135deg, rgba(255,249,220,.82), rgba(255,255,255,.42));
+    border:1px solid rgba(255,255,255,.45);
+    border-radius:22px;
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .transform-line{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:10px;
+    align-items:end;
+    margin-top:10px;
+  }
+  .weight-bubble{
+    background:rgba(255,255,255,.72);
+    border:1px solid rgba(244,180,0,.20);
+    border-radius:22px;
+    padding:16px 14px;
+    box-shadow:var(--shadow-soft);
+    text-align:center;
+  }
+  .weight-bubble .num{font-size:34px;font-weight:900;letter-spacing:-.03em}
+  .arrow{
+    align-self:center;
+    font-size:28px;
+    color:var(--pink);
+    font-weight:900;
+    padding-bottom:12px;
+  }
+  .circle-card{
+    border-radius:22px;
+    background:linear-gradient(180deg,#fff9db,#fff0b2);
+    border:1px solid rgba(244,180,0,.24);
+    padding:16px;
+    box-shadow:var(--shadow-soft);
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .circle{
+    width:126px;height:126px;border-radius:50%;
+    margin:4px auto 10px;
+    display:grid;place-items:center;
+    background:
+      conic-gradient(var(--pink) 0deg, var(--purple) var(--deg, 0deg), rgba(255,255,255,.65) var(--deg,0deg));
+    position:relative;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.65), 0 12px 24px rgba(139,92,246,.12);
+  }
+  .circle:before{
+    content:"";
+    position:absolute; inset:12px;
+    border-radius:50%;
+    background:linear-gradient(180deg,#fffdf0,#fff2c2);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+  }
+  .circle .inner{
+    position:relative; z-index:2; text-align:center;
+  }
+  .circle .inner .pct{font-size:30px; font-weight:900; letter-spacing:-.03em}
+  .progress-bar{
+    height:14px; border-radius:999px; overflow:hidden;
+    background:rgba(255,255,255,.58);
+    border:1px solid rgba(244,180,0,.18);
+    margin-top:10px;
+  }
+  .progress-bar > span{
+    display:block; height:100%;
+    background:linear-gradient(90deg,var(--purple-dark),var(--pink),var(--yellow));
+    width:0%;
+  }
+  .mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .mini-stat{
+    background:rgba(255,255,255,.58);
+    border:1px solid rgba(244,180,0,.17);
+    border-radius:18px; padding:12px 10px;
+    text-align:center;
+  }
+  .mini-stat .big{font-size:24px;font-weight:900;letter-spacing:-.03em}
+  .checkin-options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .checkin-btn{
+    padding:14px 8px; background:rgba(255,255,255,.62);
+    border:1px solid rgba(139,92,246,.14);
+    box-shadow:var(--shadow-soft);
+  }
+  .checkin-btn.active{
+    background:linear-gradient(180deg,#fff1bc,#fff8dc);
+    outline:3px solid rgba(236,72,153,.16);
+    border-color:rgba(236,72,153,.26);
+  }
+  .ask{
+    background:linear-gradient(135deg,#8b5cf6 0%, #b56af7 44%, #ec4899 100%);
+    color:#fff;
+  }
+  .ask textarea, .card input{
+    width:100%;
+    background:rgba(255,255,255,.95);
+    color:var(--ink);
+    border:1px solid rgba(139,92,246,.14);
+    border-radius:16px;
+    padding:13px 14px;
+    font:inherit;
+  }
+  .ask textarea{min-height:90px; resize:vertical}
+  .answer{
+    display:none;
+    margin-top:10px;
+    white-space:pre-wrap;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.24);
+    border-radius:16px;
+    padding:12px;
+    font-size:14px;
+  }
+  .insight{
+    background:linear-gradient(135deg,rgba(255,230,109,.95),rgba(255,248,194,.98) 52%, rgba(255,222,238,.92) 100%);
+    position:relative;
+    overflow:hidden;
+  }
+  .insight:after{
+    content:"🦋";
+    position:absolute; right:16px; top:12px;
+    font-size:28px; opacity:.18; transform:rotate(14deg);
+  }
+
+  .momentum-hero{
+    position:relative;overflow:hidden;
+    background:
+      radial-gradient(circle at 94% 8%,rgba(236,72,153,.18),transparent 24%),
+      radial-gradient(circle at 8% 95%,rgba(139,92,246,.12),transparent 28%),
+      linear-gradient(135deg,#fff5b8 0%,#ffe46c 46%,#ffd6e9 100%);
+  }
+  .momentum-hero:after{
+    content:"🦋";position:absolute;right:18px;top:16px;
+    font-size:36px;opacity:.20;transform:rotate(12deg);
+  }
+  .momentum-kicker{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .momentum-number{
+    font-size:62px;line-height:.92;font-weight:950;letter-spacing:-.06em;
+    color:var(--purple-dark);margin-top:14px;
+  }
+  .momentum-number small{font-size:18px;color:#735f6b;letter-spacing:0}
+  .momentum-copy{font-size:15px;color:#655862;margin-top:8px;max-width:540px}
+  .momentum-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .momentum-stat{
+    background:rgba(255,255,255,.66);border:1px solid rgba(255,255,255,.80);
+    border-radius:18px;padding:12px;text-align:center;box-shadow:var(--shadow-soft);
+  }
+  .momentum-stat .v{font-size:24px;font-weight:950;letter-spacing:-.03em;color:var(--ink)}
+  .momentum-stat .k{font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#8a747d;margin-top:2px}
+  .trend-card{
+    background:linear-gradient(180deg,#fffbe8 0%,#fff0ad 100%);
+    border-color:rgba(244,180,0,.22);
+  }
+  .trend-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .trend-delta{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 11px;border-radius:999px;background:#fff;
+    border:1px solid rgba(236,72,153,.16);color:var(--pink);
+    font-size:12px;font-weight:950;box-shadow:var(--shadow-soft);
+  }
+  .trend-chart-wrap{
+    margin-top:14px;border-radius:22px;padding:10px 8px 4px;
+    background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.34));
+    border:1px solid rgba(244,180,0,.16);
+  }
+  .trend-note{
+    display:flex;gap:8px;align-items:flex-start;margin-top:10px;
+    font-size:11px;line-height:1.45;color:#786a72;
+  }
+  .goal-path-card{
+    background:linear-gradient(135deg,#fff9d7,#fff0b3 65%,#f9d9ea);
+  }
+  .goal-path-rail{
+    position:relative;height:16px;border-radius:999px;margin:20px 4px 12px;
+    background:rgba(255,255,255,.70);border:1px solid rgba(244,180,0,.22);overflow:hidden;
+  }
+  .goal-path-fill{
+    position:absolute;left:0;top:0;bottom:0;width:0%;
+    background:linear-gradient(90deg,var(--purple-dark),var(--pink),var(--yellow));
+    border-radius:999px;
+  }
+  .goal-path-dot{
+    position:absolute;top:50%;transform:translate(-50%,-50%);
+    width:24px;height:24px;border-radius:50%;background:#fff;
+    border:5px solid var(--pink);box-shadow:0 5px 14px rgba(51,38,58,.18);
+  }
+  .goal-path-labels{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);font-weight:800}
+  .checkin-list{display:grid;gap:10px;margin-top:12px}
+  .checkin-row{
+    display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+    padding:12px;border-radius:16px;background:rgba(255,255,255,.62);
+    border:1px solid rgba(139,92,246,.10);
+  }
+  .checkin-dot{width:13px;height:13px;border-radius:50%;background:var(--purple);box-shadow:0 0 0 5px rgba(139,92,246,.10)}
+  .checkin-row.latest .checkin-dot{background:var(--pink);box-shadow:0 0 0 6px rgba(236,72,153,.12)}
+  .checkin-date{font-size:12px;font-weight:900;color:var(--ink)}
+  .checkin-sub{font-size:10px;color:var(--muted);margin-top:2px}
+  .checkin-weight{font-size:19px;font-weight:950;letter-spacing:-.02em}
+  .section-title-wrap{display:flex;align-items:center;gap:9px}
+  .section-butterfly{font-size:20px;opacity:.72}
+  @media (max-width:520px){
+    .momentum-stats{grid-template-columns:1fr 1fr 1fr}
+    .momentum-number{font-size:54px}
+  }
+  .history{display:grid;gap:8px}
+  .entry{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding-top:10px; border-top:1px solid rgba(150,120,40,.14); font-size:14px;
+  }
+  nav{
+    position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+    width:min(760px, calc(100% - 24px));
+    display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+    padding:8px;
+    background:rgba(255,250,217,.88);
+    border:1px solid rgba(150,120,40,.14);
+    border-radius:22px;
+    box-shadow:0 18px 36px rgba(92,65,17,.14);
+    backdrop-filter:blur(12px);
+    z-index:100;
+  }
+  nav button{
+    background:transparent; padding:10px 6px; border-radius:16px; color:#8b6f1a;
+    font-size:12px; font-weight:900;
+  }
+  nav button.active{
+    background:linear-gradient(180deg,#fff7d4,#ffed9d);
+    color:var(--purple-dark);
+    box-shadow:var(--shadow-soft);
+  }
+  .footer-note{
+    text-align:center;
+    margin:18px 0 4px;
+    color:var(--purple-dark);
+    font-weight:900;
+    letter-spacing:.02em;
+  }
+  svg{width:100%;height:150px;overflow:visible;display:block}
+  @media (max-width:640px){
+    .grid,.journey-visual{grid-template-columns:1fr}
+    .mini-grid{grid-template-columns:1fr 1fr 1fr}
+    .hero h1{font-size:30px}
+    .metric{font-size:38px}
+  }
+  @media (max-width:420px){
+    .mini-grid{grid-template-columns:1fr}
+    .checkin-options{grid-template-columns:1fr}
+    .transform-line{grid-template-columns:1fr; gap:8px}
+    .arrow{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="home" class="screen active">
+    <div class="card hero">
+      <div class="butterfly b1">🦋</div>
+      <div class="butterfly b2">🦋</div>
+      <div class="butterfly b3">🦋</div>
+      <div class="butterfly b4">🦋</div>
+
+      <div class="logo-lockup">
+        <div class="butterfly-mark" aria-hidden="true">
+          <span class="wing left"></span><span class="body"></span><span class="wing right"></span>
+        </div>
+        <div>
+          <div class="label">Rita's Journey</div>
+          <div class="logo-name">Rita</div>
+        </div>
+      </div>
+      <h1>Weight Loss & Better Health</h1>
+      <div class="sub">A beautiful, simple way to track progress toward a healthier, stronger you.</div>
+      <div class="banner-kicker">🌼 150 days toward a healthier Rita</div>
+      <div class="brand">Powered by Jedi AI Agency</div>
+
+      <div class="journey-visual">
+        <div class="transform-card">
+          <div class="row">
+            <h2>Your 150-day vision</h2>
+            <span class="pill">Goal: 140 lb</span>
+          </div>
+          <div class="transform-line">
+            <div class="weight-bubble">
+              <div class="label">Current</div>
+              <div class="num" id="heroCurrent">166.8</div>
+              <div class="tiny">lb today</div>
+            </div>
+            <div class="arrow">→</div>
+            <div class="weight-bubble">
+              <div class="label">Goal</div>
+              <div class="num">140</div>
+              <div class="tiny">lb target</div>
+            </div>
+          </div>
+
+
+          <div class="journey-path-card">
+            <div class="row">
+              <div class="label">Your visual journey</div>
+              <span class="pill" id="journeyLostPill">2.9 lb down</span>
+            </div>
+            <div class="journey-path-wrap">
+              <div class="journey-track">
+                <div class="journey-marker" style="left:0%"></div>
+                <div class="journey-marker current" id="currentMarker" style="left:9.8%"></div>
+                <div class="journey-marker goal" style="left:100%"></div>
+
+                <div class="journey-label top" style="left:0%">
+                  <span class="name">Started</span>
+                  <span class="value">169.7</span>
+                </div>
+                <div class="journey-label bottom" id="currentLabel" style="left:9.8%">
+                  <span class="name">Today</span>
+                  <span class="value" id="journeyCurrentValue">166.8</span>
+                </div>
+                <div class="journey-label top" style="left:100%">
+                  <span class="name">Goal</span>
+                  <span class="value">140</span>
+                </div>
+              </div>
+            </div>
+            <div class="journey-caption">
+              <span>Start</span>
+              <span id="journeyCaption">26.8 lb remaining to 140</span>
+              <span>Goal</span>
+            </div>
+          </div>
+          <div class="progress-bar"><span id="goalBar"></span></div>
+          <div class="tiny" id="goalText" style="margin-top:8px">2.9 lb down • 26.8 lb to goal</div>
+
+          <div class="mini-grid">
+            <div class="mini-stat">
+              <div class="label">To Lose</div>
+              <div class="big" id="lbsToGoal">26.8</div>
+              <div class="tiny">lb</div>
+            </div>
+            <div class="mini-stat">
+              <div class="label">Per Week</div>
+              <div class="big" id="weeklyNeeded">1.7</div>
+              <div class="tiny">lb needed</div>
+            </div>
+            <div class="mini-stat">
+              <div class="label">Days Left</div>
+              <div class="big" id="daysRemaining">120</div>
+              <div class="tiny">remaining</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="circle-card">
+          <div class="label" style="text-align:center">Journey progress</div>
+          <div class="circle" id="goalCircle" style="--deg:0deg">
+            <div class="inner">
+              <div class="pct" id="goalPct">0%</div>
+              <div class="tiny">to goal</div>
+            </div>
+          </div>
+          <div class="tiny" id="targetDateText" style="text-align:center">Target date: --</div>
+          <button class="secondary full" style="margin-top:12px" onclick="showScreen('progress',this)">Update weight</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid section">
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="label">Current weight</div>
+            <div class="metric"><span id="currentWeight">166.8</span> <small>lb</small></div>
+          </div>
+          <span class="pill">Starting: 169.7</span>
+        </div>
+        <div class="tiny" id="goalSummary" style="margin-top:10px">Your journey starts here.</div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(135deg, rgba(255,230,109,.98), rgba(255,241,177,.98), rgba(255,220,235,.96))">
+        <div class="row">
+          <div>
+            <div class="label">This week's medication</div>
+            <h2 style="margin-top:4px">Tirzepatide</h2>
+          </div>
+          <span class="pill">Thursday</span>
+        </div>
+        <div class="metric" style="font-size:31px;margin-top:8px">2.5 <small>mg weekly</small></div>
+        <div class="tiny">Simple tracking only. Do not change dose here without clinician guidance.</div>
+        <button id="takenBtn" class="primary full" style="margin-top:12px" onclick="markDose()">Mark this week's dose taken</button>
+      </div>
+    </div>
+
+    <div class="card section">
+      <div class="row">
+        <h2>Health check-in 🦋</h2>
+        <span class="pill">30 seconds</span>
+      </div>
+      <div class="tiny" style="margin:6px 0 10px">How are you feeling today?</div>
+      <div class="checkin-options">
+        <button class="checkin-btn" data-val="1" onclick="pickHealth(this)">😕 Low</button>
+        <button class="checkin-btn" data-val="3" onclick="pickHealth(this)">🙂 Okay</button>
+        <button class="checkin-btn" data-val="5" onclick="pickHealth(this)">✨ Great</button>
+      </div>
+    </div>
+
+    <div class="card ask section">
+      <div class="row">
+        <h2>Ask AI ✨</h2>
+        <span class="pill">Jedi AI</span>
+      </div>
+      <div style="margin:6px 0 10px;font-size:14px;opacity:.94">Ask about progress, next dose, or simple peptide education.</div>
+      <textarea id="question" placeholder="Example: How much weight have I lost?"></textarea>
+      <button class="yellow full" style="margin-top:10px" onclick="askAI()">Ask</button>
+      <div id="answer" class="answer"></div>
+    </div>
+
+    <div class="card insight section">
+      <div class="row">
+        <div>
+          <div class="label">Featured insight</div>
+          <h2 id="insightTitle" style="margin-top:4px">Every peptide has a different clock.</h2>
+        </div>
+        <span class="pill">Quick learn</span>
+      </div>
+      <p id="insightBody" style="margin-top:8px">Different compounds are studied for different goals and can have very different timelines. “Starting to work” is not the same as seeing a visible result.</p>
+      <div class="tiny" style="margin-top:10px">Educational only. Not individualized medical advice.</div>
+    </div>
+
+    <div class="footer-note">🦋 Small steps. Better health. Beautiful progress. 🦋</div>
+  </section>
+
+  <section id="progress" class="screen">
+    <div class="card momentum-hero">
+      <div class="momentum-kicker">
+        <span class="pill">Week 1 momentum</span>
+        <span class="pill">Sep 10 → Sep 17</span>
+      </div>
+      <div class="momentum-number">↓ <span id="weekLossBig">2.9</span> <small>lb</small></div>
+      <div class="momentum-copy" id="momentumCopy">A strong first-week move from 169.7 lb to 166.8 lb.</div>
+      <div class="momentum-stats">
+        <div class="momentum-stat">
+          <div class="v" id="weekStartWeight">169.7</div>
+          <div class="k">Started</div>
+        </div>
+        <div class="momentum-stat">
+          <div class="v" id="weekCurrentWeight">166.8</div>
+          <div class="k">This Week</div>
+        </div>
+        <div class="momentum-stat">
+          <div class="v" id="goalPercentStat">9.8%</div>
+          <div class="k">Goal Complete</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card trend-card section">
+      <div class="trend-head">
+        <div>
+          <div class="section-title-wrap"><span class="section-butterfly">🦋</span><h2>Weekly Progress</h2></div>
+          <div class="tiny" style="margin-top:4px">Make the progress visible — not microscopic.</div>
+        </div>
+        <div class="trend-delta" id="trendDelta">↓ 2.9 lb this week</div>
+      </div>
+      <div class="trend-chart-wrap">
+        <svg id="chart" viewBox="0 0 700 250" aria-label="Rita's weekly weight progress chart"></svg>
+      </div>
+      <div class="trend-note">
+        <span>💛</span>
+        <span>Early scale changes can include water weight. The important signal is the trend over multiple weekly check-ins.</span>
+      </div>
+    </div>
+
+    <div class="card goal-path-card section">
+      <div class="row">
+        <div>
+          <div class="label">150-day journey</div>
+          <h2 style="margin-top:4px">169.7 → 140 lb</h2>
+        </div>
+        <span class="pill" id="goalJourneyPill">2.9 lb down</span>
+      </div>
+      <div class="goal-path-rail">
+        <div class="goal-path-fill" id="goalPathFill"></div>
+        <div class="goal-path-dot" id="goalPathDot" style="left:9.8%"></div>
+      </div>
+      <div class="goal-path-labels">
+        <span>Start 169.7</span>
+        <span id="goalPathToday">Today 166.8</span>
+        <span>Goal 140</span>
+      </div>
+      <div class="tiny" id="pathSummary" style="margin-top:12px;font-weight:800;color:var(--purple-dark)">Goal: 140 lb in 150 days.</div>
+    </div>
+
+    <div class="card section">
+      <div class="row">
+        <div class="section-title-wrap"><span class="section-butterfly">🦋</span><h2>Weekly Check-ins</h2></div>
+        <span class="pill">Thursday</span>
+      </div>
+      <div id="weightHistory" class="checkin-list"></div>
+
+      <div class="grid" style="margin-top:16px">
+        <div>
+          <div class="label">Next weight</div>
+          <input id="weightInput" type="number" step="0.1" value="166.8" />
+        </div>
+        <div>
+          <div class="label">Goal weight</div>
+          <input id="goalInput" type="number" step="0.1" value="140" />
+        </div>
+      </div>
+      <button class="primary full" style="margin-top:12px" onclick="saveWeight()">Save next check-in</button>
+    </div>
+  </section>
+
+  <section id="protocol" class="screen">
+    <div class="card" style="background:linear-gradient(135deg, rgba(255,230,109,.98), rgba(255,241,177,.98), rgba(255,220,235,.96))">
+      <div class="label">Current protocol</div>
+      <h2 style="margin-top:6px">Tirzepatide</h2>
+      <div class="row" style="margin-top:10px">
+        <div class="metric" style="font-size:32px">2.5 <small>mg</small></div>
+        <span class="pill">Thursday</span>
+      </div>
+      <div class="tiny" style="margin-top:8px">Additional medications or peptides can be added later if needed.</div>
+    </div>
+
+    <div class="card section">
+      <h2>Dose history</h2>
+      <div id="doseHistory" class="history" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <section id="learn" class="screen">
+    <div class="card insight">
+      <div class="label">Simple learning</div>
+      <h2 style="margin-top:6px">Quick education. No clutter.</h2>
+      <p style="margin-top:8px">The deeper knowledge base lives behind Ask AI. This page only surfaces a few easy starting points.</p>
+    </div>
+
+    <div class="card section">
+      <div class="row">
+        <h2>Quick topics</h2>
+        <span class="pill">Tap to ask AI</span>
+      </div>
+      <button class="secondary full" style="margin-top:12px" onclick="quickTopic('tirzepatide')">What is tirzepatide?</button>
+      <button class="secondary full" style="margin-top:8px" onclick="quickTopic('mots-c')">What is MOTS-C?</button>
+      <button class="secondary full" style="margin-top:8px" onclick="quickTopic('bpc-157')">What is BPC-157?</button>
+      <button class="secondary full" style="margin-top:8px" onclick="quickTopic('health')">What matters most for healthy weight loss?</button>
+    </div>
+  </section>
+
+  <nav>
+    <button class="active" onclick="showScreen('home',this)">Home</button>
+    <button onclick="showScreen('progress',this)">Progress</button>
+    <button onclick="showScreen('protocol',this)">Protocol</button>
+    <button onclick="showScreen('learn',this)">Learn</button>
+  </nav>
+
+</div>
+
+<script>
+const SKEY='rita-health-v3';
+const defaultState = {
+  startWeight:169.7,
+  currentWeight:166.8,
+  goalWeight:140,
+  targetDays:150,
+  targetStart:'2026-09-10',
+  weights:[
+    {date:'2026-09-10', weight:169.7},
+    {date:'2026-09-17', weight:166.8}
+  ],
+  doses:[],
+  health:[]
+};
+const stored = JSON.parse(localStorage.getItem(SKEY)||'null');
+const state = stored && typeof stored === 'object' ? {...defaultState, ...stored} : defaultState;
+
+function save(){ localStorage.setItem(SKEY, JSON.stringify(state)); render(); }
+
+function showScreen(id, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function saveWeight(){
+  const w = parseFloat(document.getElementById('weightInput').value);
+  const g = parseFloat(document.getElementById('goalInput').value);
+  if(!isNaN(w)){
+    state.currentWeight = w;
+    const d = new Date().toISOString().slice(0,10);
+    const existing = state.weights.findIndex(x => x.date === d);
+    if(existing >= 0) state.weights[existing] = {date:d, weight:w};
+    else state.weights.push({date:d, weight:w});
+    state.weights.sort((a,b)=>a.date.localeCompare(b.date));
+  }
+  if(!isNaN(g)){ state.goalWeight = g; }
+  save();
+  showScreen('progress', document.querySelectorAll('nav button')[1]);
+}
+
+function markDose(){
+  const today = new Date().toISOString().slice(0,10);
+  state.doses.push({date:today, name:'Tirzepatide', dose:'2.5 mg'});
+  save();
+}
+
+function pickHealth(btn){
+  document.querySelectorAll('.checkin-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.health.push({date:new Date().toISOString(), score:+btn.dataset.val});
+  save();
+}
+
+const kb = {
+  'tirzepatide': `Tirzepatide is a prescription medicine that activates GIP and GLP-1 receptors. Approved products are used for type 2 diabetes and chronic weight management in eligible patients. Rita's tracker currently records 2.5 mg once weekly on Thursday. This app does not recommend dose changes.`,
+  'mots-c': `MOTS-C is a mitochondria-derived peptide being studied for metabolic signaling and cellular stress responses. Human evidence is still limited, so it should be treated as an experimental research topic rather than an established treatment.`,
+  'bpc-157': `BPC-157 is an experimental peptide studied mainly in preclinical models for tissue-repair and gastrointestinal pathways. Human clinical evidence is limited and it is not FDA-approved for human use.`,
+  'health': `Healthy weight loss is not just the scale. The biggest drivers usually include consistency, protein intake, hydration, sleep, movement, and protecting muscle while body weight comes down.`,
+  'ss-31': `SS-31 is a mitochondria-targeting peptide studied for effects on cellular energetics. It is still best treated as an educational research topic unless used under qualified medical guidance.`,
+  'ghk-cu': `GHK-Cu is a naturally occurring copper-binding peptide studied in areas such as skin biology, collagen-related pathways and tissue remodeling. Evidence depends heavily on route and use case.`
+};
+
+function askAI(){
+  const q = (document.getElementById('question').value || '').toLowerCase().trim();
+  let a = '';
+  if(/how much.*lost|weight.*lost/.test(q)){
+    const lost = (state.startWeight - state.currentWeight).toFixed(1);
+    a = `You have logged ${lost} lb of weight change from your starting weight of ${state.startWeight.toFixed(1)} lb. Your current logged weight is ${state.currentWeight.toFixed(1)} lb.`;
+  } else if(/next.*shot|next.*dose|when.*tirz|when.*injection|thursday/.test(q)){
+    a = `Your tracked tirzepatide schedule is Thursday, 2.5 mg once weekly.`;
+  } else if(/what.*taking|protocol|medication/.test(q)){
+    a = `Your current tracked protocol is tirzepatide 2.5 mg once weekly on Thursday.`;
+  } else {
+    const hit = Object.keys(kb).find(k => q.includes(k));
+    a = hit ? kb[hit] : `I can help with Rita's logged weight progress, the Thursday tirzepatide schedule, and simple educational questions about common peptide topics. For side effects, symptoms, or treatment decisions, use a licensed clinician.`;
+  }
+  const el = document.getElementById('answer');
+  el.textContent = a;
+  el.style.display = 'block';
+}
+
+function quickTopic(topic){
+  showScreen('home', document.querySelectorAll('nav button')[0]);
+  document.getElementById('question').value = 'What is ' + topic + '?';
+  askAI();
+}
+
+function drawChart(){
+  const svg = document.getElementById('chart');
+  const pts = state.weights.slice(-8);
+  if(!svg || !pts.length){ if(svg) svg.innerHTML=''; return; }
+
+  const vals = pts.map(x=>x.weight);
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const rawRange = Math.max(.8, maxV - minV);
+  const pad = Math.max(.7, rawRange * .28);
+  const min = minV - pad;
+  const max = maxV + pad;
+
+  const left = 76, right = 654, top = 30, bottom = 196;
+  const x = i => pts.length === 1 ? (left+right)/2 : left + ((right-left) * i/(pts.length-1));
+  const y = v => bottom - ((bottom-top) * ((v-min)/(max-min||1)));
+
+  const d = pts.map((p,i)=>(i?'L':'M')+x(i)+' '+y(p.weight)).join(' ');
+  const area = pts.length > 1 ? `${d} L ${x(pts.length-1)} ${bottom} L ${x(0)} ${bottom} Z` : '';
+
+  const first = pts[0], last = pts[pts.length-1];
+  const diff = first.weight - last.weight;
+
+  const yTicks = 4;
+  let grid = '';
+  for(let i=0;i<=yTicks;i++){
+    const val = max - ((max-min)*i/yTicks);
+    const yy = top + ((bottom-top)*i/yTicks);
+    grid += `<line x1="${left}" y1="${yy}" x2="${right}" y2="${yy}" stroke="#e9dca0" stroke-width="1" opacity=".65"/>`;
+    grid += `<text x="${left-10}" y="${yy+4}" text-anchor="end" font-size="11" font-weight="800" fill="#8a747d">${val.toFixed(1)}</text>`;
+  }
+
+  const pointMarkup = pts.map((p,i)=>{
+    const isLast = i===pts.length-1;
+    const cx=x(i), cy=y(p.weight);
+    const dt = new Date(p.date+'T12:00:00');
+    const dateLabel = dt.toLocaleDateString(undefined,{month:'short',day:'numeric'});
+    return `
+      <circle cx="${cx}" cy="${cy}" r="${isLast?11:9}" fill="#fff" stroke="${isLast?'#ec4899':'#8b5cf6'}" stroke-width="${isLast?6:5}"/>
+      ${isLast?`<circle cx="${cx}" cy="${cy}" r="18" fill="none" stroke="#ec4899" stroke-width="2" opacity=".16"/>`:''}
+      <text x="${cx}" y="${cy-20}" text-anchor="middle" font-size="15" font-weight="950" fill="#33263a">${p.weight.toFixed(1)}</text>
+      <text x="${cx}" y="${bottom+28}" text-anchor="middle" font-size="11" font-weight="900" fill="#7b6e74">${dateLabel}</text>
+    `;
+  }).join('');
+
+  const midX = pts.length>1 ? (x(0)+x(pts.length-1))/2 : x(0);
+  const midY = pts.length>1 ? Math.min(y(first.weight), y(last.weight)) - 34 : top;
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="trendLine" x1="0" x2="1">
+        <stop offset="0%" stop-color="#8b5cf6"/>
+        <stop offset="55%" stop-color="#ec4899"/>
+        <stop offset="100%" stop-color="#f4b400"/>
+      </linearGradient>
+      <linearGradient id="trendArea" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ec4899" stop-opacity=".20"/>
+        <stop offset="100%" stop-color="#facc15" stop-opacity=".03"/>
+      </linearGradient>
+    </defs>
+    ${grid}
+    ${area ? `<path d="${area}" fill="url(#trendArea)"/>` : ''}
+    <path d="${d}" fill="none" stroke="url(#trendLine)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pointMarkup}
+    ${pts.length>1 ? `
+      <g transform="translate(${midX},${midY})">
+        <rect x="-64" y="-18" width="128" height="34" rx="17" fill="#fff" stroke="#f3c1dc"/>
+        <text x="0" y="5" text-anchor="middle" font-size="13" font-weight="950" fill="#ec4899">↓ ${diff.toFixed(1)} lb in 1 week</text>
+      </g>` : ''}
+  `;
+}
+
+function render(){
+  const current = state.currentWeight;
+  const start = state.startWeight;
+  const goal = state.goalWeight;
+  const totalNeeded = Math.max(0, start - goal);
+  const lost = start - current;
+  const remain = Math.max(0, current - goal);
+  const progressPct = totalNeeded > 0 ? Math.max(0, Math.min(100, (lost / totalNeeded) * 100)) : 0;
+
+  const startDate = new Date(state.targetStart || new Date().toISOString().slice(0,10));
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + (state.targetDays || 150));
+  const today = new Date();
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const elapsed = Math.max(0, Math.floor((today - startDate)/msPerDay));
+  const targetDays = state.targetDays || 150;
+  const remainingDays = Math.max(0, targetDays - elapsed);
+  const weeklyNeeded = remainingDays > 0 ? remain / (remainingDays/7) : 0;
+
+  document.getElementById('currentWeight').textContent = current.toFixed(1);
+  document.getElementById('heroCurrent').textContent = current.toFixed(1);
+  document.getElementById('goalSummary').textContent = `${lost.toFixed(1)} lb down • ${remain.toFixed(1)} lb to goal`;
+  document.getElementById('goalText').textContent = `${lost.toFixed(1)} lb down • ${remain.toFixed(1)} lb to goal`;
+  document.getElementById('goalBar').style.width = progressPct + '%';
+  document.getElementById('lbsToGoal').textContent = remain.toFixed(1);
+  document.getElementById('weeklyNeeded').textContent = weeklyNeeded.toFixed(1);
+  document.getElementById('daysRemaining').textContent = remainingDays;
+  document.getElementById('goalPct').textContent = Math.round(progressPct) + '%';
+  document.getElementById('goalCircle').style.setProperty('--deg', (progressPct*3.6)+'deg');
+  document.getElementById('targetDateText').textContent = `Target date: ${endDate.toLocaleDateString()}`;
+
+  const journeyPct = Math.max(3, Math.min(97, progressPct));
+  document.getElementById('currentMarker').style.left = journeyPct + '%';
+  document.getElementById('currentLabel').style.left = journeyPct + '%';
+  document.getElementById('journeyCurrentValue').textContent = current.toFixed(1);
+  document.getElementById('journeyLostPill').textContent = `${lost.toFixed(1)} lb down`;
+  document.getElementById('journeyCaption').textContent = `${remain.toFixed(1)} lb remaining to 140`;
+  document.getElementById('pathSummary').textContent =
+    `Goal: ${goal.toFixed(1)} lb in ${targetDays} days • ${(start-goal).toFixed(1)} lb total target • ${weeklyNeeded.toFixed(1)} lb/week needed from today`;
+
+  const orderedWeights = state.weights.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const firstCheck = orderedWeights[0] || {weight:start,date:state.targetStart};
+  const latestCheck = orderedWeights[orderedWeights.length-1] || {weight:current,date:new Date().toISOString().slice(0,10)};
+  const weekLoss = firstCheck.weight - latestCheck.weight;
+  const goalPctExact = totalNeeded > 0 ? (lost/totalNeeded)*100 : 0;
+
+  const weekLossBig = document.getElementById('weekLossBig');
+  if(weekLossBig) weekLossBig.textContent = Math.max(0,weekLoss).toFixed(1);
+  const weekStartWeight = document.getElementById('weekStartWeight');
+  if(weekStartWeight) weekStartWeight.textContent = firstCheck.weight.toFixed(1);
+  const weekCurrentWeight = document.getElementById('weekCurrentWeight');
+  if(weekCurrentWeight) weekCurrentWeight.textContent = latestCheck.weight.toFixed(1);
+  const goalPercentStat = document.getElementById('goalPercentStat');
+  if(goalPercentStat) goalPercentStat.textContent = `${Math.max(0,goalPctExact).toFixed(1)}%`;
+  const trendDelta = document.getElementById('trendDelta');
+  if(trendDelta) trendDelta.textContent = `↓ ${Math.max(0,weekLoss).toFixed(1)} lb this week`;
+  const momentumCopy = document.getElementById('momentumCopy');
+  if(momentumCopy) momentumCopy.textContent = `A strong first-week move from ${firstCheck.weight.toFixed(1)} lb to ${latestCheck.weight.toFixed(1)} lb.`;
+  const goalJourneyPill = document.getElementById('goalJourneyPill');
+  if(goalJourneyPill) goalJourneyPill.textContent = `${lost.toFixed(1)} lb down`;
+  const goalPathToday = document.getElementById('goalPathToday');
+  if(goalPathToday) goalPathToday.textContent = `Today ${current.toFixed(1)}`;
+  const goalPathFill = document.getElementById('goalPathFill');
+  if(goalPathFill) goalPathFill.style.width = `${progressPct}%`;
+  const goalPathDot = document.getElementById('goalPathDot');
+  if(goalPathDot) goalPathDot.style.left = `${Math.max(2,Math.min(98,progressPct))}%`;
+
+  document.getElementById('weightInput').value = current.toFixed(1);
+  document.getElementById('goalInput').value = goal.toFixed(1);
+
+  const doseHistory = document.getElementById('doseHistory');
+  doseHistory.innerHTML = state.doses.length
+    ? state.doses.slice().reverse().map(d => `<div class="entry"><span>${d.name} • ${d.dose}</span><strong>${d.date}</strong></div>`).join('')
+    : `<div class="tiny">No doses logged yet.</div>`;
+
+  const weightHistory = document.getElementById('weightHistory');
+  if(weightHistory){
+    const ordered = state.weights.slice().sort((a,b)=>a.date.localeCompare(b.date));
+    weightHistory.innerHTML = ordered.slice().reverse().map((w,idx)=>{
+      const d = new Date(w.date+'T12:00:00');
+      const pretty = d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+      const previous = ordered[ordered.indexOf(w)-1];
+      const delta = previous ? previous.weight - w.weight : 0;
+      const latest = idx===0 ? ' latest' : '';
+      return `<div class="checkin-row${latest}">
+        <div class="checkin-dot"></div>
+        <div><div class="checkin-date">${pretty}</div><div class="checkin-sub">${previous ? (delta>=0 ? `Down ${delta.toFixed(1)} lb from prior check-in` : `Up ${Math.abs(delta).toFixed(1)} lb from prior check-in`) : 'Starting check-in'}</div></div>        <div class="checkin-weight">${w.weight.toFixed(1)} lb</div>
+      </div>`;
+    }).join('');
+  }
+
+  const takenBtn = document.getElementById('takenBtn');
+  const todayStr = new Date().toISOString().slice(0,10);
+  const takenToday = state.doses.some(d => d.date === todayStr);
+  takenBtn.textContent = takenToday ? "Dose logged ✓" : "Mark this week's dose taken";
+  takenBtn.disabled = takenToday;
+  takenBtn.style.opacity = takenToday ? '.85' : '1';
+
+  drawChart();
+}
+
+render();
+</script>
+</body>
+</html>
