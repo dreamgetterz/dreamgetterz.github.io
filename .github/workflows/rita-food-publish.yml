@@ -1,0 +1,166 @@
+name: Rita food and wine publish and audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rita-food-publish.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: rita-food-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Attach only the new diary script
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('rita-health/index.html')
+          s=p.read_text()
+          tag='<script src="food-wine.js?v=1.0.0"></script>'
+          if tag not in s:
+              assert '</body>' in s
+              p.write_text(s.replace('</body>',tag+'\n</body>',1))
+          PY
+      - name: Install isolated test tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/rita-food-tools"
+          cd "$RUNNER_TEMP/rita-food-tools"
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test actual forms, portions, native storage and record isolation
+        env:
+          SOURCE: ${{ github.workspace }}
+        run: |
+          cd "$RUNNER_TEMP/rita-food-tools"
+          mkdir -p report
+          cat > audit.cjs <<'JS'
+          const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert/strict');
+          const {chromium}=require('playwright');
+          const checks=[];function ok(name,value){assert.ok(value,name);checks.push({name,pass:true});console.log('PASS: '+name);}
+          const root=process.env.SOURCE;
+          const server=http.createServer((req,res)=>{const u=new URL(req.url,'http://localhost');const p=path.join(root,u.pathname==='/'?'rita-health/index.html':u.pathname);try{res.setHeader('Content-Type',p.endsWith('.js')?'application/javascript':'text/html');res.end(fs.readFileSync(p));}catch(e){res.writeHead(404);res.end('Not found');}});
+          (async()=>{
+            await new Promise(r=>server.listen(8765,'127.0.0.1',r));
+            const url='http://127.0.0.1:8765/rita-health/index.html';
+            const profile=path.join(process.env.RUNNER_TEMP,'rita-food-browser');
+            const options={headless:true,viewport:{width:390,height:844},timezoneId:'America/Los_Angeles'};
+            let ctx=await chromium.launchPersistentContext(profile,options),page=ctx.pages()[0];const errors=[];
+            async function init(){page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());await page.clock.setFixedTime(new Date('2026-09-19T21:00:00Z'));await page.goto(url);await page.waitForFunction(()=>window.RitaFoodWine?.version==='1.0.0');page.setDefaultTimeout(7000);}
+            const ev=fn=>page.evaluate(fn);
+            const dismiss=async()=>{if(await page.locator('#fwDismiss').isVisible())await page.locator('#fwDismiss').click();};
+            const submit=async()=>{await page.locator('#fwForm button[type=submit]').click();await dismiss();};
+            await init();
+            await ev(()=>{localStorage.setItem('jedi-ericka-health-v1','ERICKA-SENTINEL');localStorage.setItem('rita-health-v4',JSON.stringify({startWeight:169.7,currentWeight:166.8,goalWeight:130,targetDays:180,targetStart:'2026-09-10',weights:[{date:'2026-09-10',weight:169.7},{date:'2026-09-19',weight:166.8}],doses:[{date:'2026-09-10',name:'Tirzepatide',dose:'2.5 mg'},{date:'2026-09-17',name:'Tirzepatide',dose:'2.5 mg'}],health:[]}));});
+            const original=await ev(()=>localStorage.getItem('rita-health-v4'));
+            await page.reload();await page.waitForFunction(()=>window.RitaFoodWine);
+            ok('Existing weight still displayed',await page.locator('#currentWeight').innerText()==='166.8');
+            ok('Food & Wine navigation added',await page.locator('#fwNav').innerText()==='Food & Wine');
+            await page.locator('#fwHome [data-fw-add="chips"]').click();
+            ok('Chips shortcut selects Nighttime snacks',await page.locator('#fwMeal').inputValue()==='Nighttime snacks');
+            ok('No invented chip calories',await page.locator('#fwCalories').inputValue()==='');
+            ok('Local date matches September 19',await page.locator('#fwEntryDate').inputValue()==='2026-09-19');
+            await page.fill('#fwServing','28 g label serving');await page.fill('#fwQuantity','1.5');await page.fill('#fwCalories','160');await page.fill('#fwProtein','2');await page.fill('#fwCarbs','15');await page.fill('#fwFat','10');await submit();
+            ok('Chip portion gives 240 calories',await ev(()=>RitaFoodWine.totals('2026-09-19').calories.value===240));
+            ok('Macros multiplied by portions',await ev(()=>{const t=RitaFoodWine.totals('2026-09-19');return t.protein.value===3&&t.carbs.value===22.5&&t.fat.value===15;}));
+            await page.locator('#foodWine [data-fw-add="nightWine"]').click();await page.fill('#fwGlasses','2');await page.fill('#fwOz','6');await page.fill('#fwCalories','140');await submit();
+            ok('Wine glass and ounce totals correct',await ev(()=>{const t=RitaFoodWine.totals('2026-09-19');return t.glasses===2&&t.oz===12;}));
+            ok('Wine calories counted once in combined total',await ev(()=>{const t=RitaFoodWine.totals('2026-09-19');return t.wineCalories.value===280&&t.combined.value===520;}));
+            ok('Nighttime subtotal includes chips and wine',await ev(()=>RitaFoodWine.totals('2026-09-19',true).combined.value===520));
+            await page.locator('#foodWine [data-fw-add="food"]').click();await page.fill('#fwName','TEST lunch');await page.selectOption('#fwMeal','Lunch');await page.fill('#fwCalories','400');await submit();
+            ok('Lunch contributes to daily total but not nighttime subtotal',await ev(()=>RitaFoodWine.totals('2026-09-19').combined.value===920&&RitaFoodWine.totals('2026-09-19',true).combined.value===520));
+            ok('Unknown meal macros remain missing',await ev(()=>RitaFoodWine.totals('2026-09-19').carbs.missing===1));
+            await page.locator('#fwRecent button').filter({hasText:'Chips'}).click();
+            ok('Recent snack opens review without auto-saving',await ev(()=>RitaFoodWine.getState().foods.length===2));
+            await page.fill('#fwQuantity','0.5');await submit();
+            ok('Repeated chips preserve nighttime category',await ev(()=>RitaFoodWine.getState().foods.at(-1).meal==='Nighttime snacks'));
+            await page.locator('[data-fw-edit][data-kind="wines"]').first().click();await page.fill('#fwGlasses','1');await submit();
+            ok('Edit replaces wine entry, not duplicates',await ev(()=>RitaFoodWine.getState().wines.length===1&&RitaFoodWine.totals('2026-09-19').wineCalories.value===140));
+            await page.locator('[data-fw-delete][data-kind="wines"]').first().click();
+            ok('Wine removal updates totals',await ev(()=>RitaFoodWine.totals('2026-09-19').glasses===0));
+            await page.locator('#fwUndo').click();await dismiss();
+            ok('Undo restores wine record and total',await ev(()=>RitaFoodWine.totals('2026-09-19').glasses===1));
+            await page.locator('[data-fw-edit][data-kind="wines"]').first().click();await page.fill('#fwOz','7');
+            ok('Changed pour size clears old calories for correction',await page.locator('#fwCalories').inputValue()==='');await page.locator('#fwClose').click();
+            await page.locator('#foodWine [data-fw-add="wine"]').click();await submit();
+            ok('Unknown wine calories remain missing',await ev(()=>RitaFoodWine.totals('2026-09-19').wineCalories.missing===1));
+            ok('Unknown calories visibly mark partial total',(await page.locator('#fwCoverage').innerText()).includes('Partial calorie total'));
+            ok('Daytime wine excluded from nighttime count',await ev(()=>RitaFoodWine.totals('2026-09-19',true).glasses===1));
+            await page.locator('#fwPrev').click();ok('Dates have separate totals',await ev(()=>RitaFoodWine.totals('2026-09-18').combined.count===0));
+            await page.locator('#foodWine [data-fw-add="night"]').click();ok('Backdated snack keeps selected date',await page.locator('#fwEntryDate').inputValue()==='2026-09-18');await page.fill('#fwName','TEST backdated snack');await submit();await page.locator('#fwToday').click();
+            const mutations=[['Negative portion','s.foods[0].quantity=-1'],['Zero portion','s.foods[0].quantity=0'],['Negative calories','s.foods[0].calories=-1'],['Nonfinite nutrient','s.foods[0].calories=NaN'],['Future date','s.foods[0].date="2026-09-20"'],['Invalid calendar date','s.foods[0].date="2026-02-30"'],['Other person backup','s.owner="ericka"'],['Duplicate ID','s.foods.push({...s.foods[0]})'],['Zero pour','s.wines[0].oz=0']];
+            for(const [name,code] of mutations)ok(name+' rejected',await page.evaluate(code=>{const s=RitaFoodWine.getState();eval(code);try{RitaFoodWine.validate(s);return false;}catch(e){return true;}},code));
+            await page.locator('#foodWine [data-fw-add="night"]').click();await page.fill('#fwName','<img src=x onerror=alert(1)>');await submit();
+            ok('Names rendered as escaped text',await page.locator('#fwList img').count()===0);
+            ok('Rita weight and medication storage unchanged',await ev(()=>localStorage.getItem('rita-health-v4'))===original);
+            ok('Ericka storage unchanged',await ev(()=>localStorage.getItem('jedi-ericka-health-v1'))==='ERICKA-SENTINEL');
+            const saved=await ev(()=>RitaFoodWine.getState());await page.reload();
+            ok('Diary survives page reload',JSON.stringify(await ev(()=>RitaFoodWine.getState()))===JSON.stringify(saved));
+            await ctx.close();ctx=await chromium.launchPersistentContext(profile,options);page=ctx.pages()[0];await init();
+            ok('Diary survives native browser close/reopen',JSON.stringify(await ev(()=>RitaFoodWine.getState()))===JSON.stringify(saved));
+            await ev(()=>RitaFoodWine.show());await page.locator('.fw-backups summary').click();
+            const downloadPromise=page.waitForEvent('download');await page.locator('#fwExport').click();const download=await downloadPromise;const backup=path.join(process.env.RUNNER_TEMP,'rita-food-test-backup.json');await download.saveAs(backup);
+            ok('Backup exactly matches diary',JSON.stringify(JSON.parse(fs.readFileSync(backup)))===JSON.stringify(saved));
+            await page.locator('[data-fw-delete][data-kind="wines"]').first().click();await dismiss();await page.locator('#fwImport').setInputFiles(backup);await page.waitForTimeout(150);await dismiss();
+            ok('Restore recovers food/wine only',JSON.stringify(await ev(()=>RitaFoodWine.getState()))===JSON.stringify(saved));
+            for(const width of [320,375,390,430,768,1440]){await page.setViewportSize({width,height:900});await ev(()=>RitaFoodWine.show());ok('Food diary fits '+width+'px',await ev(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.locator('#foodWine [data-fw-add="night"]').click();ok('Food form fits '+width+'px',await ev(()=>document.getElementById('fwDialog').scrollWidth<=document.getElementById('fwDialog').clientWidth+1));await page.locator('#fwClose').click();}
+            await page.setViewportSize({width:390,height:844});await page.screenshot({path:'report/food-mobile-synthetic.png',fullPage:true});
+            await ev(()=>localStorage.setItem(RitaFoodWine.key,'{broken'));await page.reload();await ev(()=>RitaFoodWine.show());ok('Corrupt diary produces warning',await page.locator('#fwStorage').isVisible());ok('Corrupt storage not overwritten',await ev(()=>localStorage.getItem(RitaFoodWine.key))==='{broken');
+            await page.evaluate(s=>localStorage.setItem(RitaFoodWine.key,JSON.stringify(s)),saved);await page.reload();await ev(()=>RitaFoodWine.show());await page.locator('#foodWine [data-fw-add="chips"]').click();await ev(()=>{Storage.prototype.setItem=function(){throw new DOMException('Quota full','QuotaExceededError');};});await page.locator('#fwForm button[type=submit]').click();
+            ok('Storage failure shows save error',await page.locator('#fwError').isVisible());ok('Failed save leaves prior data unchanged',JSON.stringify(await ev(()=>RitaFoodWine.getState()))===JSON.stringify(saved));
+            ok('No uncaught errors in new food/wine interactions',errors.length===0);await ctx.close();server.close();
+            fs.writeFileSync('report/results.json',JSON.stringify({scope:'Food and wine addition, native Chromium storage, isolated synthetic records; not a new audit of unchanged legacy health tracker',passed:checks.length,checks},null,2));
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## Rita Food & Wine\n'+checks.length+' checks passed. Nighttime snacks, serving maths, wine, edit/undo, storage, backups and record isolation tested.\n');
+          })().catch(e=>{console.error(e);fs.writeFileSync('report/failure.txt',e.stack);server.close();process.exit(1);});
+          JS
+          node audit.cjs
+      - name: Commit the tested one-line attachment
+        run: |
+          if ! git diff --quiet -- rita-health/index.html; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add rita-health/index.html
+            git commit -m 'Attach tested Rita food and wine diary; preserve existing tracker'
+            git push origin HEAD:main
+          fi
+      - name: Build existing Pages site
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+      - name: Publish existing Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify the public Rita app
+        run: |
+          cd "$RUNNER_TEMP/rita-food-tools"
+          cat > public.cjs <<'JS'
+          const fs=require('fs'),assert=require('assert/strict'),{chromium}=require('playwright');
+          (async()=>{const url='https://dreamgetterz.github.io/rita-health/';let text;for(let i=0;i<24;i++){const r=await fetch(url+'?check='+Date.now());text=await r.text();if(r.ok&&text.includes('food-wine.js?v=1.0.0'))break;await new Promise(r=>setTimeout(r,5000));}assert.ok(text.includes('food-wine.js?v=1.0.0'),'Public page loads diary');const browser=await chromium.launch();const page=await browser.newPage({viewport:{width:390,height:844},timezoneId:'America/Los_Angeles'});await page.goto(url,{waitUntil:'networkidle'});await page.waitForFunction(()=>window.RitaFoodWine?.version==='1.0.0');await page.locator('#fwNav').click();assert.ok((await page.locator('#foodWine').innerText()).includes('Nighttime Snacks & Wine'));await page.locator('#foodWine [data-fw-add="chips"]').click();await page.fill('#fwQuantity','2');await page.fill('#fwCalories','100');await page.locator('#fwForm button[type=submit]').click();assert.equal(await page.evaluate(()=>RitaFoodWine.totals(RitaFoodWine.today()).combined.value),200);await page.reload();assert.equal(await page.evaluate(()=>RitaFoodWine.totals(RitaFoodWine.today()).combined.value),200);await page.locator('#fwNav').click();await page.locator('#fwDismiss').click().catch(()=>{});await page.screenshot({path:'report/public-food-synthetic.png',fullPage:true});await browser.close();fs.writeFileSync('report/public.json',JSON.stringify({url,success:true,checks:['Public page and script load','Nighttime section present','Chip serving total correct','Save survives public reload'],checkedAt:new Date().toISOString()},null,2));console.log('PUBLIC RITA FOOD & WINE CHECKS PASSED');})().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node public.cjs
+      - name: Save audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rita-food-wine-audit
+          path: ${{ runner.temp }}/rita-food-tools/report/
+          retention-days: 14
