@@ -82,7 +82,7 @@ jobs:
             check('Only the three confirmed injections are logged',await page.evaluate(()=>ErickaApp.getState().doses.length===3));
             check('Next scheduled injection is September 23',await page.evaluate(()=>{const s=ErickaApp.getState();return ErickaCore.nextDate(s.medications[0],s,'2026-09-20')==='2026-09-23';}));
             check('Schedule is visible on the homepage',/Tirzepatide/.test(await page.locator('#homeSchedule').innerText())&&/1.25/.test(await page.locator('#homeSchedule').innerText()));
-            check('Duplicate taken dose is rejected',await page.evaluate(()=>{const s=ErickaApp.getState();try{ErickaCore.upsertDose(s,{id:'duplicate-test',medId:s.medications[0].id,scheduledDate:'2026-09-20',actualDate:'2026-09-20',status:'taken'},'2026-09-19');return false;}catch(e){return e.message.includes('already logged');}}));
+            check('Duplicate taken dose is rejected',await page.evaluate(()=>{const s=ErickaApp.getState();try{ErickaCore.upsertDose(s,{id:'duplicate-test',medId:s.medications[0].id,scheduledDate:'2026-09-20',actualDate:'2026-09-20',status:'taken'},'2026-09-20');return false;}catch(e){return e.message.includes('already logged');}}));
             check('No projection from only two early weigh-ins',await page.evaluate(()=>ErickaApp.getMetrics().projected===null));
             check('Peptide knowledge and Featured Insight retained',await page.evaluate(()=>ErickaApp.getKnowledge().length===13&&ErickaApp.featured('2026-09-19').title==='Tirzepatide'));
             check('No butterflies or photo images',await page.locator('img').count()===0);
