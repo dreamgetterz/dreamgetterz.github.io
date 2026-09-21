@@ -40,7 +40,7 @@ jobs:
           const results=[];
           const check=(name,condition)=>{assert.ok(condition,name);results.push({name,pass:true});console.log('PASS: '+name);};
           const blobSHA=b=>crypto.createHash('sha1').update(Buffer.from('blob '+b.length+'\0')).update(b).digest('hex');
-          const assets={'index.html':'fb93875e37f27b1e4a270bb04e83869b2b168b1b','styles.css':'91d0e2ed407ee0d4ac12c0f8cd065974fcba2d4a','core.js':'a1316d1d35d48a4c276ad33e5ae908223ffd993f','app.js':'2107642a3fcf3409b1cd080dd48d8261772e36e3'};
+          const assets={'index.html':'fb93875e37f27b1e4a270bb04e83869b2b168b1b','styles.css':'91d0e2ed407ee0d4ac12c0f8cd065974fcba2d4a','core.js':'47d9e3b64d5c93f3b717213ed394ea768b728496','app.js':'2107642a3fcf3409b1cd080dd48d8261772e36e3'};
           (async()=>{
             for(const [name,expected] of Object.entries(assets)){
               let response,body;
@@ -61,7 +61,7 @@ jobs:
             const initialize=async()=>{
               page.on('pageerror',e=>errors.push(e.message));
               page.on('dialog',d=>d.accept());
-              await page.clock.setFixedTime(new Date('2026-09-19T19:00:00Z'));
+              await page.clock.setFixedTime(new Date('2026-09-20T19:00:00Z'));
               await page.goto(url,{waitUntil:'networkidle',timeout:60000});
               await page.waitForFunction(()=>window.ErickaApp?.version==='2.0.0');
               page.setDefaultTimeout(5000);
@@ -72,16 +72,17 @@ jobs:
             check('Latest weight 147 and loss 8 lb',await page.evaluate(()=>ErickaApp.getMetrics().current===147&&ErickaApp.getMetrics().lost===8));
             check('Goal 130 by January 31, 2027',await page.evaluate(()=>ErickaApp.getState().profile.goalWeight===130&&ErickaApp.getMetrics().deadline==='2027-01-31'));
             check('Remaining 17 lb and progress 32 percent',await page.evaluate(()=>ErickaApp.getMetrics().remain===17&&ErickaApp.getMetrics().pct===32));
-            check('143 calendar day plan and 134 days remaining',await page.evaluate(()=>ErickaApp.getState().profile.targetDays===143&&ErickaApp.getMetrics().remainingDays===134));
+            check('143 calendar day plan and 133 days remaining',await page.evaluate(()=>ErickaApp.getState().profile.targetDays===143&&ErickaApp.getMetrics().remainingDays===133));
             check('Native browser localStorage successfully initialized',await page.evaluate(()=>JSON.parse(localStorage.getItem('jedi-ericka-health-v1')).owner==='ericka'));
-            check('Exactly one active tirzepatide schedule, 2.5 mg Thursdays',await page.evaluate(()=>{const m=ErickaApp.getState().medications;return m.length===1&&m[0].active&&m[0].name==='Tirzepatide'&&m[0].amount===2.5&&m[0].unit==='mg'&&JSON.stringify(m[0].days)==='[4]'&&m[0].startDate==='2026-09-10';}));
+            check('Exactly one active tirzepatide schedule, 1.25 mg Sundays and Wednesdays',await page.evaluate(()=>{const m=ErickaApp.getState().medications;return m.length===1&&m[0].active&&m[0].name==='Tirzepatide'&&m[0].amount===1.25&&m[0].unit==='mg'&&JSON.stringify(m[0].days)==='[0,3]'&&m[0].startDate==='2026-09-20';}));
             for(const day of ['2026-09-10','2026-09-17']){
               check(day+' explicitly recorded taken at 2.5 mg',await page.evaluate(day=>{const rows=ErickaApp.getState().doses.filter(d=>d.scheduledDate===day);return rows.length===1&&rows[0].name==='Tirzepatide'&&rows[0].amount===2.5&&rows[0].unit==='mg'&&rows[0].status==='taken'&&rows[0].actualDate===day;},day));
             }
-            check('Only the two confirmed injections are logged',await page.evaluate(()=>ErickaApp.getState().doses.length===2));
-            check('Next scheduled injection is September 24',await page.evaluate(()=>{const s=ErickaApp.getState();return ErickaCore.nextDate(s.medications[0],s,'2026-09-19')==='2026-09-24';}));
-            check('Schedule is visible on the homepage',/Tirzepatide/.test(await page.locator('#homeSchedule').innerText())&&/2.5/.test(await page.locator('#homeSchedule').innerText()));
-            check('Duplicate taken dose is rejected',await page.evaluate(()=>{const s=ErickaApp.getState();try{ErickaCore.upsertDose(s,{id:'duplicate-test',medId:s.medications[0].id,scheduledDate:'2026-09-17',actualDate:'2026-09-17',status:'taken'},'2026-09-19');return false;}catch(e){return e.message.includes('already logged');}}));
+            check('September 20 explicitly recorded taken at 1.25 mg',await page.evaluate(()=>{const rows=ErickaApp.getState().doses.filter(d=>d.scheduledDate==='2026-09-20');return rows.length===1&&rows[0].name==='Tirzepatide'&&rows[0].amount===1.25&&rows[0].unit==='mg'&&rows[0].status==='taken'&&rows[0].actualDate==='2026-09-20';}));
+            check('Only the three confirmed injections are logged',await page.evaluate(()=>ErickaApp.getState().doses.length===3));
+            check('Next scheduled injection is September 23',await page.evaluate(()=>{const s=ErickaApp.getState();return ErickaCore.nextDate(s.medications[0],s,'2026-09-20')==='2026-09-23';}));
+            check('Schedule is visible on the homepage',/Tirzepatide/.test(await page.locator('#homeSchedule').innerText())&&/1.25/.test(await page.locator('#homeSchedule').innerText()));
+            check('Duplicate taken dose is rejected',await page.evaluate(()=>{const s=ErickaApp.getState();try{ErickaCore.upsertDose(s,{id:'duplicate-test',medId:s.medications[0].id,scheduledDate:'2026-09-20',actualDate:'2026-09-20',status:'taken'},'2026-09-19');return false;}catch(e){return e.message.includes('already logged');}}));
             check('No projection from only two early weigh-ins',await page.evaluate(()=>ErickaApp.getMetrics().projected===null));
             check('Peptide knowledge and Featured Insight retained',await page.evaluate(()=>ErickaApp.getKnowledge().length===13&&ErickaApp.featured('2026-09-19').title==='Tirzepatide'));
             check('No butterflies or photo images',await page.locator('img').count()===0);
@@ -98,7 +99,7 @@ jobs:
             await page.screenshot({path:'report/home-public.png',fullPage:true});
             await page.evaluate(()=>ErickaApp.show('more'));
             const doseText=await page.locator('#doseHistory').innerText();
-            check('Both taken dates and correct dose render in dose history',doseText.includes('Sep 10')&&doseText.includes('Sep 17')&&doseText.includes('2.5'));
+            check('Historical and split doses render in dose history',doseText.includes('Sep 10')&&doseText.includes('Sep 17')&&doseText.includes('Sep 20')&&doseText.includes('2.5')&&doseText.includes('1.25'));
             await page.screenshot({path:'report/protocol-public.png',fullPage:true});
             await page.evaluate(()=>ErickaApp.show('progress'));
             await page.waitForTimeout(100);
@@ -112,36 +113,36 @@ jobs:
             await page.fill('#caloriesInput','200');
             await page.fill('#proteinInput','20');
             await page.locator('#foodForm button[type=submit]').click();
-            check('Real form saves serving-adjusted calories',await page.evaluate(()=>ErickaApp.getTotals('2026-09-19').calories.value===300));
-            check('Real form saves serving-adjusted protein',await page.evaluate(()=>ErickaApp.getTotals('2026-09-19').protein.value===30));
-            check('Unknown carbohydrate not fabricated as complete zero',await page.evaluate(()=>ErickaApp.getTotals('2026-09-19').carbs.missing===1));
+            check('Real form saves serving-adjusted calories',await page.evaluate(()=>ErickaApp.getTotals('2026-09-20').calories.value===300));
+            check('Real form saves serving-adjusted protein',await page.evaluate(()=>ErickaApp.getTotals('2026-09-20').protein.value===30));
+            check('Unknown carbohydrate not fabricated as complete zero',await page.evaluate(()=>ErickaApp.getTotals('2026-09-20').carbs.missing===1));
             await page.reload({waitUntil:'networkidle'});
             check('Food survives public-page reload',await page.evaluate(()=>ErickaApp.getState().foods.length===1));
             check('Repeated reload never duplicates doses',await page.evaluate(()=>ErickaApp.getState().doses.length===2));
             // Simulate the previously deployed browser record, retaining its unrelated data.
             const beforeUpgrade=await page.evaluate(()=>{const s=ErickaApp.getState();s.medications=[];s.doses=[];delete s.profile.tirzepatideLogRevision;localStorage.setItem(ErickaCore.KEY,JSON.stringify(s));return {foods:s.foods,weights:s.weights,checkins:s.checkins,profile:s.profile};});
             await page.reload({waitUntil:'networkidle'});
-            check('Previously saved browser gains confirmed schedule and two logs',await page.evaluate(()=>ErickaApp.getState().medications.length===1&&ErickaApp.getState().doses.length===2));
+            check('Previously saved browser gains confirmed split schedule and three logs',await page.evaluate(()=>ErickaApp.getState().medications.length===1&&ErickaApp.getState().doses.length===3));
             const upgraded=await page.evaluate(()=>ErickaApp.getState());
             check('Upgrade preserves food records exactly',JSON.stringify(upgraded.foods)===JSON.stringify(beforeUpgrade.foods));
             check('Upgrade preserves weight records exactly',JSON.stringify(upgraded.weights)===JSON.stringify(beforeUpgrade.weights));
             check('Upgrade preserves check-ins exactly',JSON.stringify(upgraded.checkins)===JSON.stringify(beforeUpgrade.checkins));
-            check('Upgrade marker and dose records saved to native storage',await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem(ErickaCore.KEY));return s.profile.tirzepatideLogRevision===1&&s.doses.length===2;}));
+            check('Upgrade marker and dose records saved to native storage',await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem(ErickaCore.KEY));return s.profile.tirzepatideLogRevision===2&&s.doses.length===3;}));
             await context.close();
             context=await chromium.launchPersistentContext(profile,options);
             page=context.pages()[0]||await context.newPage();
             await initialize();
-            check('Food survives browser close and reopening with native storage',await page.evaluate(()=>ErickaApp.getState().foods.length===1&&ErickaApp.getTotals('2026-09-19').calories.value===300));
-            check('Confirmed dose history survives browser restart',await page.evaluate(()=>ErickaApp.getState().doses.length===2&&ErickaApp.getState().medications[0].amount===2.5));
+            check('Food survives browser close and reopening with native storage',await page.evaluate(()=>ErickaApp.getState().foods.length===1&&ErickaApp.getTotals('2026-09-20').calories.value===300));
+            check('Confirmed split dose history survives browser restart',await page.evaluate(()=>ErickaApp.getState().doses.length===3&&ErickaApp.getState().medications[0].amount===1.25));
             await page.evaluate(()=>ErickaApp.show('food'));
             await page.locator('[data-food-edit]').first().click();
             await page.fill('#quantityInput','2');
             await page.locator('#foodForm button[type=submit]').click();
-            check('Food correction updates rather than duplicates',await page.evaluate(()=>ErickaApp.getState().foods.length===1&&ErickaApp.getTotals('2026-09-19').calories.value===400));
+            check('Food correction updates rather than duplicates',await page.evaluate(()=>ErickaApp.getState().foods.length===1&&ErickaApp.getTotals('2026-09-20').calories.value===400));
             await page.locator('[data-food-delete]').first().click();
             check('Removal updates diary total',await page.evaluate(()=>ErickaApp.getState().foods.length===0));
             await page.locator('#undoBtn').click();
-            check('Undo restores record and total',await page.evaluate(()=>ErickaApp.getState().foods.length===1&&ErickaApp.getTotals('2026-09-19').calories.value===400));
+            check('Undo restores record and total',await page.evaluate(()=>ErickaApp.getState().foods.length===1&&ErickaApp.getTotals('2026-09-20').calories.value===400));
             await page.screenshot({path:'report/food-public-test-data.png',fullPage:true});
             await page.evaluate(()=>ErickaApp.show('home'));
             await page.fill('#question','What is MOTS-C?');
@@ -150,13 +151,13 @@ jobs:
             await page.waitForFunction(()=>document.getElementById('aiStatus').textContent.includes('not connected'),null,{timeout:35000});
             check('Missing live AI is reported honestly, not simulated as a model answer',(await page.locator('#aiStatus').innerText()).includes('not connected'));
             check('AI unavailable state does not change weight',await page.evaluate(()=>ErickaApp.getMetrics().current===147));
-            await page.clock.setFixedTime(new Date('2026-09-24T19:00:00Z'));
+            await page.clock.setFixedTime(new Date('2026-09-23T19:00:00Z'));
             await page.reload({waitUntil:'networkidle'});
-            check('Advancing to next Thursday does not auto-log the injection',await page.evaluate(()=>ErickaApp.getState().doses.length===2&&!ErickaApp.getState().doses.some(d=>d.scheduledDate==='2026-09-24')));
+            check('Advancing to next Wednesday does not auto-log the injection',await page.evaluate(()=>ErickaApp.getState().doses.length===3&&!ErickaApp.getState().doses.some(d=>d.scheduledDate==='2026-09-23')));
             check('No uncaught JavaScript errors in public browser tests',errors.length===0);
             await context.close();
-            fs.writeFileSync('report/results.json',JSON.stringify({url,checkedAt:new Date().toISOString(),scope:'Actual public HTTPS and native Chromium localStorage. Confirmed Thursday schedule, past taken doses, migration, and unchanged food/weight tracking. Synthetic edits confined to isolated test profile. Live AI unavailable.',passed:results.length,results},null,2));
-            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## Ericka public-app audit\n\n'+results.length+' checks passed against '+url+'\n\nConfirmed tirzepatide: 2.5 mg Thursdays, September 10 and 17 taken. Existing-browser migration preserved food and weight data. Native storage survived reload and browser restart. Test edits stayed in the isolated CI browser.\n\n**Open item: live AI service not connected.**\n');
+            fs.writeFileSync('report/results.json',JSON.stringify({url,checkedAt:new Date().toISOString(),scope:'Actual public HTTPS and native Chromium localStorage. Confirmed Sunday/Wednesday split schedule, historical and current taken doses, migration, and unchanged food/weight tracking. Synthetic edits confined to isolated test profile. Live AI unavailable.',passed:results.length,results},null,2));
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,'## Ericka public-app audit\n\n'+results.length+' checks passed against '+url+'\n\nConfirmed tirzepatide history: 2.5 mg on September 10 and 17; 1.25 mg Sunday/Wednesday begins September 20, with September 20 taken. Existing-browser migration preserved food and weight data. Native storage survived reload and browser restart. Test edits stayed in the isolated CI browser.\n\n**Open item: live AI service not connected.**\n');
           })().catch(e=>{fs.writeFileSync('report/failure.txt',e.stack||String(e));console.error(e);process.exit(1);});
           JS
           node audit.cjs
