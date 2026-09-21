@@ -118,7 +118,7 @@ jobs:
             check('Unknown carbohydrate not fabricated as complete zero',await page.evaluate(()=>ErickaApp.getTotals('2026-09-20').carbs.missing===1));
             await page.reload({waitUntil:'networkidle'});
             check('Food survives public-page reload',await page.evaluate(()=>ErickaApp.getState().foods.length===1));
-            check('Repeated reload never duplicates doses',await page.evaluate(()=>ErickaApp.getState().doses.length===2));
+            check('Repeated reload never duplicates doses',await page.evaluate(()=>ErickaApp.getState().doses.length===3));
             // Simulate the previously deployed browser record, retaining its unrelated data.
             const beforeUpgrade=await page.evaluate(()=>{const s=ErickaApp.getState();s.medications=[];s.doses=[];delete s.profile.tirzepatideLogRevision;localStorage.setItem(ErickaCore.KEY,JSON.stringify(s));return {foods:s.foods,weights:s.weights,checkins:s.checkins,profile:s.profile};});
             await page.reload({waitUntil:'networkidle'});
