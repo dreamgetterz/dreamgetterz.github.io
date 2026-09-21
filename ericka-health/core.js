@@ -25,10 +25,10 @@ function num(v,label,min=0,max=100000,nullable=false){
 function str(v,label,max=160,optional=false){if(v==null&&optional)return '';if(typeof v!=='string'||(!optional&&!v.trim())||v.length>max)throw Error(`${label} is invalid.`);return v.trim();}
 function date(v,end=today()){ord(v);if(v>end)throw Error('Future dates cannot be logged as completed.');return v;}
 function id(v){if(typeof v!=='string'||!/^[-\w]{1,90}$/.test(v))throw Error('Invalid entry identifier.');return v;}
-// Explicitly confirmed September 19: 2.5 mg on Thursdays; September 10 and 17 taken.
-// One-time migration, never a rolling automatic dose log or an automatic dose increase.
+// Confirmed September 20: beginning now, two 1.25 mg weekly records on Sunday and Wednesday.
+// September 10 and 17 remain historical 2.5 mg taken entries. September 20 is logged as 1.25 mg taken.
 function applyConfirmedSchedule(s){
- if(s.profile.tirzepatideLogRevision===1)return s;
+ if(s.profile.tirzepatideLogRevision===2)return s;
  const matches=s.medications.filter(m=>/tirzepatide|trizepatide/.test(m.name.toLowerCase())||['zepbound','mounjaro'].includes(m.name.toLowerCase().trim()));
  if(matches.length>1)throw Error('More than one tirzepatide schedule exists. Resolve the duplicate before applying the confirmed schedule.');
  let med=matches[0];
@@ -37,7 +37,6 @@ function applyConfirmedSchedule(s){
   if(s.medications.some(m=>m.id===medId))throw Error('Medication identifier conflict; saved records were not changed.');
   med={id:medId};s.medications.push(med);
  }
- Object.assign(med,{name:'Tirzepatide',amount:2.5,unit:'mg',startDate:'2026-09-10',days:[4],active:true});
  for(const day of ['2026-09-10','2026-09-17']){
   let row=s.doses.find(d=>d.medId===med.id&&d.scheduledDate===day);
   if(!row){
@@ -47,7 +46,15 @@ function applyConfirmedSchedule(s){
   }
   Object.assign(row,{medId:med.id,scheduledDate:day,actualDate:day,status:'taken',name:'Tirzepatide',amount:2.5,unit:'mg'});
  }
- s.profile.tirzepatideLogRevision=1;
+ Object.assign(med,{name:'Tirzepatide',amount:1.25,unit:'mg',startDate:'2026-09-20',days:[0,3],active:true});
+ let row=s.doses.find(d=>d.medId===med.id&&d.scheduledDate==='2026-09-20');
+ if(!row){
+  const doseId='ericka-tirzepatide-taken-2026-09-20';
+  if(s.doses.some(d=>d.id===doseId))throw Error('Dose identifier conflict; saved records were not changed.');
+  row={id:doseId};s.doses.push(row);
+ }
+ Object.assign(row,{medId:med.id,scheduledDate:'2026-09-20',actualDate:'2026-09-20',status:'taken',name:'Tirzepatide',amount:1.25,unit:'mg'});
+ s.profile.tirzepatideLogRevision=2;
  return s;
 }
 function defaults(){return applyConfirmedSchedule({schema:1,owner:'ericka',revision:0,profile:{name:'Ericka',startWeight:155,startDate:'2026-09-10',goalWeight:130,targetDays:143,targetDate:'2027-01-31',planRevision:2,calorieTarget:null,proteinTarget:null},weights:[{date:'2026-09-10',weight:155},{date:'2026-09-19',weight:147}],foods:[],medications:[],doses:[],checkins:[]});}
@@ -150,7 +157,7 @@ if(typeof window!=='undefined'){
   const raw=window.localStorage.getItem(KEY);
   if(raw!==null){
    const before=JSON.parse(raw);
-   if(before.profile?.tirzepatideLogRevision!==1){
+   if(before.profile?.tirzepatideLogRevision!==2){
     const after=migrateConfirmedSchedule(before);
     after.revision+=1;
     window.localStorage.setItem(KEY,JSON.stringify(after));
